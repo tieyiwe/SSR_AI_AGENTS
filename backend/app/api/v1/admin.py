@@ -596,3 +596,87 @@ async def close_conversation(conv_id: str):
         _mem_conversations[conv_id]["status"] = "resolved"
 
     return {"ok": True, "conversation_id": conv_id, "status": "resolved"}
+
+
+# ── Knowledge Base ────────────────────────────────────────────────────────────
+
+class KBEntryCreate(BaseModel):
+    category: str
+    question: str
+    answer: str
+    keywords: list[str] = []
+    active: bool = True
+
+
+class KBEntryUpdate(BaseModel):
+    category: Optional[str] = None
+    question: Optional[str] = None
+    answer: Optional[str] = None
+    keywords: Optional[list[str]] = None
+    active: Optional[bool] = None
+
+
+@router.get("/knowledge")
+async def list_knowledge(
+    category: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+):
+    from app.core.knowledge_store import list_entries, CATEGORIES
+    entries = list_entries(category=category, search=search)
+    return {"total": len(entries), "categories": CATEGORIES, "entries": entries}
+
+
+@router.post("/knowledge", status_code=201)
+async def create_knowledge_entry(body: KBEntryCreate):
+    from app.core.knowledge_store import add_entry
+    entry = add_entry(body.model_dump())
+    return {"ok": True, "entry": entry}
+
+
+@router.patch("/knowledge/{entry_id}")
+async def update_knowledge_entry(entry_id: str, body: KBEntryUpdate):
+    from app.core.knowledge_store import update_entry
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    updated = update_entry(entry_id, data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return {"ok": True, "entry": updated}
+
+
+@router.delete("/knowledge/{entry_id}")
+async def delete_knowledge_entry(entry_id: str):
+    from app.core.knowledge_store import delete_entry
+    if not delete_entry(entry_id):
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return {"ok": True}
+
+
+# ── Canned Responses ──────────────────────────────────────────────────────────
+
+class CannedResponseCreate(BaseModel):
+    title: str
+    content: str
+    category: str = "general"
+    active: bool = True
+
+
+@router.get("/canned-responses")
+async def list_canned_responses(category: Optional[str] = Query(None)):
+    from app.core.canned_store import list_responses, CANNED_CATEGORIES
+    responses = list_responses(category=category)
+    return {"total": len(responses), "categories": CANNED_CATEGORIES, "responses": responses}
+
+
+@router.post("/canned-responses", status_code=201)
+async def create_canned_response(body: CannedResponseCreate):
+    from app.core.canned_store import add_response
+    resp = add_response(body.model_dump())
+    return {"ok": True, "response": resp}
+
+
+@router.delete("/canned-responses/{resp_id}")
+async def delete_canned_response(resp_id: str):
+    from app.core.canned_store import delete_response
+    if not delete_response(resp_id):
+        raise HTTPException(status_code=404, detail="Response not found")
+    return {"ok": True}

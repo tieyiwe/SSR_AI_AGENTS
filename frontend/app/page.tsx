@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Plane, MessageCircle, Phone, Globe, CheckCircle } from "lucide-react";
 
 const PHONE_NUMBER = "+230 603 8000";
@@ -53,7 +56,28 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+const LANG_OPTIONS = [
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "en", label: "English",  flag: "🇬🇧" },
+  { code: "cr", label: "Kreol",    flag: "🇲🇺" },
+  { code: "hi", label: "हिन्दी",   flag: "🇮🇳" },
+];
+
+function useLanguage() {
+  const [lang, setLang] = useState("fr");
+  useEffect(() => {
+    const stored = localStorage.getItem("aass_lang");
+    if (stored) setLang(stored);
+  }, []);
+  const choose = (code: string) => {
+    setLang(code);
+    localStorage.setItem("aass_lang", code);
+  };
+  return { lang, choose };
+}
+
 export default function HomePage() {
+  const { lang, choose } = useLanguage();
   return (
     <main className="min-h-screen bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 flex flex-col safe-top">
       <div className="flex-1 flex flex-col px-5 py-8 text-white max-w-5xl mx-auto w-full">
@@ -62,8 +86,13 @@ export default function HomePage() {
         <div className="flex items-center gap-3 mb-8">
           <Plane className="w-8 h-8 text-gold-400 shrink-0" />
           <div>
-            <h1 className="text-xl font-bold leading-tight">SSR Airport AI</h1>
-            <p className="text-brand-200 text-xs">Air Mauritius · Available 24/7</p>
+            <h1 className="text-xs font-bold leading-tight tracking-widest uppercase text-brand-100">
+              SSR-Airport Advanced Assisting System
+            </h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xl font-black text-white tracking-tight">AASS</span>
+              <span className="text-brand-300 text-xs">· Air Mauritius · 24/7</span>
+            </div>
           </div>
         </div>
 
@@ -79,7 +108,7 @@ export default function HomePage() {
                 P
               </div>
               <h2 className="text-lg font-bold">Priya</h2>
-              <p className="text-brand-200 text-sm mt-0.5">Your SSR Airport AI assistant</p>
+              <p className="text-brand-200 text-sm mt-0.5">AASS · Your Airport Assistant</p>
               <div className="flex items-center justify-center gap-1.5 mt-3 bg-green-500/20 border border-green-400/30 rounded-full px-3 py-1 w-fit mx-auto">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-green-300 text-xs font-medium">Online now</span>
@@ -92,7 +121,7 @@ export default function HomePage() {
             {/* Contact channels */}
             <div className="space-y-2.5">
               <Link
-                href="/chat"
+                href={`/chat?lang=${lang}`}
                 className="flex items-center gap-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 rounded-2xl px-5 py-4 transition-all group"
               >
                 <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -139,15 +168,27 @@ export default function HomePage() {
               </a>
             </div>
 
-            {/* Language badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Globe className="w-3.5 h-3.5 text-brand-300 shrink-0" />
-              <span className="text-brand-300 text-xs">Available in:</span>
-              {["🇬🇧 EN", "🇫🇷 FR", "🇲🇺 Kreol", "🇮🇳 हिन्दी"].map(lang => (
-                <span key={lang} className="text-xs bg-white/10 border border-white/20 rounded-full px-2 py-0.5 text-brand-100">
-                  {lang}
-                </span>
-              ))}
+            {/* Language selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Globe className="w-3.5 h-3.5 text-brand-300 shrink-0" />
+                <span className="text-brand-300 text-xs">Choose your language:</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {LANG_OPTIONS.map(({ code, label, flag }) => (
+                  <button
+                    key={code}
+                    onClick={() => choose(code)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                      lang === code
+                        ? "bg-white text-brand-800 border-white font-semibold"
+                        : "bg-white/10 text-brand-100 border-white/20 hover:bg-white/20"
+                    }`}
+                  >
+                    {flag} {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

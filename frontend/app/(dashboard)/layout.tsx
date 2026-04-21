@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3, Phone, Settings, Home, Plane,
   ShieldCheck, Bot, Languages, Wrench, ChevronDown, ChevronRight, LogOut,
-  AlertTriangle, Users,
+  AlertTriangle, Users, BookOpen,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useState, useEffect } from "react";
@@ -19,10 +19,11 @@ const mainNav = [
 ];
 
 const adminNav = [
-  { href: "/admin", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/agents", label: "Agent Config", icon: Bot },
-  { href: "/admin/languages", label: "Languages", icon: Languages },
-  { href: "/admin/tools", label: "Connectors", icon: Wrench },
+  { href: "/admin",            label: "Analytics",   icon: BarChart3 },
+  { href: "/admin/agents",     label: "Agent Config", icon: Bot },
+  { href: "/admin/knowledge",  label: "Knowledge Base", icon: BookOpen },
+  { href: "/admin/languages",  label: "Languages",   icon: Languages },
+  { href: "/admin/tools",      label: "Connectors",  icon: Wrench },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -56,8 +57,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-2">
             <Plane className="w-6 h-6 text-gold-400" />
             <div>
-              <h1 className="font-bold text-sm">SSR Airport AI</h1>
-              <p className="text-brand-200 text-xs">Operations Center</p>
+              <p className="text-[10px] font-semibold tracking-widest text-brand-300 uppercase leading-tight">
+                SSR-Airport Advanced<br />Assisting System
+              </p>
+              <span className="text-base font-black text-white tracking-tight leading-none">AASS</span>
             </div>
           </div>
         </div>

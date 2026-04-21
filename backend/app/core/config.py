@@ -9,7 +9,7 @@ def _parse_cors_origins(raw: str) -> List[str]:
 
 class Settings(BaseSettings):
     # Application
-    APP_NAME: str = "SSR Airport AI"
+    APP_NAME: str = "AASS — SSR Airport Advanced Assisting System"
     APP_ENV: str = "development"
 
     # Replit sets REPL_SLUG and REPL_OWNER — derive public URL automatically

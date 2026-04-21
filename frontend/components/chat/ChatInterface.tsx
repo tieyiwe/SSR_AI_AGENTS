@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { Send, Star, ThumbsUp, ThumbsDown, User, Clock } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import LanguageSelector from "./LanguageSelector";
@@ -153,18 +154,38 @@ function RatingWidget({
 
 // ── Main chat component ───────────────────────────────────────────────────────
 
+const WELCOME_MESSAGES: Record<string, string> = {
+  fr: "Bonjour ! Je suis **Priya**, votre Assistante Aéroportuaire AASS. Je peux vous aider avec les vols, les réservations, les services spéciaux et les informations aéroportuaires. Comment puis-je vous aider ?",
+  en: "Hello! I'm **Priya**, your AASS Airport Assistant. I can help you with flight status, bookings, special requests, and airport information. How can I assist you today?",
+  cr: "Bonzour ! Mo se **Priya**, ou Asistan Aeropor AASS. Mo kapav ed ou avek vol, rezervasion, servis spesial ek linformasion aeropor. Ki manier mo kapav ed ou ?",
+  hi: "नमस्ते! मैं **Priya** हूँ, आपकी AASS एयरपोर्ट असिस्टेंट। मैं फ्लाइट स्टेटस, बुकिंग, विशेष सेवाओं और एयरपोर्ट जानकारी में आपकी मदद कर सकती हूँ। आज मैं आपकी क्या सहायता कर सकती हूँ?",
+};
+
+function getInitialLanguage(params: URLSearchParams): string {
+  const fromUrl = params.get("lang");
+  if (fromUrl && ["en", "fr", "cr", "hi"].includes(fromUrl)) return fromUrl;
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("aass_lang");
+    if (stored && ["en", "fr", "cr", "hi"].includes(stored)) return stored;
+  }
+  return "fr";
+}
+
 export default function ChatInterface({ className }: { className?: string }) {
+  const params = useSearchParams();
+  const initLang = getInitialLanguage(params);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm **Priya**, your SSR Airport AI assistant. I can help you with flight status, bookings, special requests, and airport information. How can I assist you today?",
+      content: WELCOME_MESSAGES[initLang] ?? WELCOME_MESSAGES.fr,
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(initLang);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState(SUGGESTIONS);
   const [showRating, setShowRating] = useState(false);
@@ -318,7 +339,10 @@ export default function ChatInterface({ className }: { className?: string }) {
       {!isEscalated && (
         <div className="border-b border-gray-200 bg-white px-4 py-2 flex items-center gap-3">
           <span className="text-xs text-gray-500">Language:</span>
-          <LanguageSelector value={language} onChange={setLanguage} />
+          <LanguageSelector value={language} onChange={(l) => {
+            setLanguage(l);
+            if (typeof window !== "undefined") localStorage.setItem("aass_lang", l);
+          }} />
         </div>
       )}
 
@@ -347,7 +371,7 @@ export default function ChatInterface({ className }: { className?: string }) {
         {isTyping && !isEscalated && (
           <div className="flex gap-2 items-end">
             <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              AI
+              P
             </div>
             <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
               <div className="flex gap-1 items-center h-4">

@@ -59,8 +59,10 @@ function LoginForm() {
           <div className="inline-flex items-center gap-3 text-white">
             <Plane className="w-8 h-8 text-gold-400" />
             <div className="text-left">
-              <h1 className="font-bold text-xl leading-tight">SSR Airport AI</h1>
-              <p className="text-brand-200 text-sm">Air Mauritius Operations</p>
+              <p className="text-[10px] font-semibold tracking-widest text-brand-200 uppercase leading-tight">
+                SSR-Airport Advanced<br />Assisting System
+              </p>
+              <span className="text-xl font-black text-white tracking-tight leading-none">AASS</span>
             </div>
           </div>
         </div>

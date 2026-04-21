@@ -23,8 +23,8 @@ if settings.SENTRY_DSN:
     )
 
 app = FastAPI(
-    title="SSR Airport AI API",
-    description="AI-powered passenger assistance for SSR International Airport, Mauritius",
+    title="AASS API",
+    description="SSR Airport Advanced Assisting System — AI-powered passenger assistance for SSR International Airport, Mauritius",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -55,7 +55,7 @@ app.include_router(team.router,  prefix="/api/v1/team",  tags=["Team"])
 async def health_check():
     return {
         "status": "ok",
-        "service": "SSR Airport AI",
+        "service": "AASS",
         "version": "1.0.0",
         "env": settings.APP_ENV,
     }
@@ -64,7 +64,7 @@ async def health_check():
 @app.get("/")
 async def root():
     return {
-        "service": "SSR Airport AI API",
+        "service": "AASS API",
         "docs": "/docs",
         "health": "/health",
     }

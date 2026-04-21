@@ -77,7 +77,25 @@ class BlandVoiceService:
             "cr": f"Bonzour ! Mo appel {agent_name}, mo pe apel depi Aeropor Internasional SSR pou Air Mauritius. Ki manier mo kapav ede ou zordi ?",
             "hi": f"नमस्ते! मेरा नाम {agent_name} है, और मैं Air Mauritius की ओर से SSR अंतर्राष्ट्रीय हवाई अड्डे से बोल रही/रहा हूँ। मैं आपकी किस तरह मदद कर सकता/सकती हूँ?",
         }
-        greeting_line = greetings.get(language, greetings["en"])
+
+        # Auto-detect mode: greet in French (Mauritius default), then switch to caller's language
+        auto_detect = language in ("auto", "")
+        if auto_detect:
+            greeting_line = greetings["fr"]
+            language_block = (
+                "LANGUAGE DETECTION (MANDATORY):\n"
+                "Begin your greeting in French as Mauritius default. "
+                "After the caller's first words, IMMEDIATELY identify their language from: "
+                "English, French, Mauritian Creole (Kreol), or Hindi. "
+                "Switch to and maintain that language for the entire call. "
+                "If unsure, ask: 'Which language do you prefer — English, Français, Kreol, ou हिन्दी?'"
+            )
+        else:
+            greeting_line = greetings.get(language, greetings["fr"])
+            language_block = (
+                f"LANGUAGE: Respond in {lang_name}. "
+                "If the caller uses a different language, switch and match them immediately."
+            )
 
         prompt = f"""You are {agent_name}, a voice AI assistant for SSR International Airport (Air Mauritius), Mauritius.
 
@@ -86,7 +104,7 @@ When the call connects, IMMEDIATELY say this exact greeting (do NOT skip or modi
 "{greeting_line}"
 This introduction must happen before anything else, every single call, no exceptions.
 
-LANGUAGE: Respond in {lang_name}. If the caller uses a different language, switch and match them immediately.
+{language_block}
 
 IDENTITY & TONE:
 - Warm, professional, and patient — embody Mauritian hospitality
@@ -168,7 +186,8 @@ CLOSING: "Thank you for calling SSR International Airport. Have a wonderful jour
         ]
 
     def _map_language(self, code: str) -> str:
-        return {"en": "en", "fr": "fr", "cr": "fr", "hi": "hi"}.get(code, "en")
+        # "auto" and "" default to French (Mauritius default)
+        return {"en": "en", "fr": "fr", "cr": "fr", "hi": "hi", "auto": "fr"}.get(code, "fr")
 
     def _get_language_name(self, code: str) -> str:
         return {
@@ -176,4 +195,5 @@ CLOSING: "Thank you for calling SSR International Airport. Have a wonderful jour
             "fr": "French (Français)",
             "cr": "Mauritian Creole (use French as fallback, mix naturally)",
             "hi": "Hindi (हिन्दी)",
-        }.get(code, "English")
+            "auto": "auto-detected",
+        }.get(code, "French (Français)")

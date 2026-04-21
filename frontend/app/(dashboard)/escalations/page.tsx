@@ -3,9 +3,38 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AlertTriangle, CheckCircle, Clock, User, Send, RefreshCw,
-  MessageSquare, ArrowRight, Wifi, WifiOff,
+  MessageSquare, ArrowRight, Wifi, WifiOff, Zap,
 } from "lucide-react";
 import { clsx } from "clsx";
+
+type CannedResponse = {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+};
+
+function SLATimer({ createdAt, status }: { createdAt: string; status: string }) {
+  const [mins, setMins] = useState(() =>
+    Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000)
+  );
+  useEffect(() => {
+    if (status === "resolved") return;
+    const t = setInterval(() => {
+      setMins(Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000));
+    }, 30000);
+    return () => clearInterval(t);
+  }, [createdAt, status]);
+
+  if (status === "resolved") return null;
+  const color = mins < 5 ? "text-green-600" : mins < 15 ? "text-amber-600 font-semibold" : "text-red-600 font-bold";
+  const display = mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  return (
+    <span className={clsx("flex items-center gap-0.5 text-xs", color)}>
+      <Clock className="w-3 h-3" /> {display}
+    </span>
+  );
+}
 
 type EscalationStatus = "waiting" | "claimed" | "resolved";
 type Priority = "normal" | "high" | "urgent";
@@ -81,7 +110,16 @@ export default function EscalationsPage() {
   const [claiming, setClaiming] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
   const [filter, setFilter] = useState<"all" | EscalationStatus>("all");
+  const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
+  const [showCanned, setShowCanned] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/api/backend/v1/admin/canned-responses")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setCannedResponses(d.responses ?? []))
+      .catch(() => {});
+  }, []);
 
   const fetchList = useCallback(async () => {
     try {
@@ -255,7 +293,10 @@ export default function EscalationsPage() {
                   >
                     <div className="flex items-start justify-between mb-1">
                       <StatusBadge status={esc.status} />
-                      <span className="text-xs text-gray-400">{timeAgo(esc.created_at)}</span>
+                      <div className="flex items-center gap-1.5">
+                        <SLATimer createdAt={esc.created_at} status={esc.status} />
+                        <span className="text-xs text-gray-400">{timeAgo(esc.created_at)}</span>
+                      </div>
                     </div>
                     <p className="text-sm text-gray-700 font-medium line-clamp-2 mt-1">
                       {esc.reason || "General assistance request"}
@@ -434,7 +475,36 @@ export default function EscalationsPage() {
 
             {/* Reply input — only shown when claimed */}
             {selected.status === "claimed" && (
-              <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
+              <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0 space-y-2">
+                {/* Quick canned responses */}
+                {cannedResponses.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setShowCanned(!showCanned)}
+                      className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                    >
+                      <Zap className="w-3 h-3" />
+                      Quick Replies
+                      <span className="text-gray-400">({cannedResponses.length})</span>
+                    </button>
+                    {showCanned && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                        {cannedResponses.map(cr => (
+                          <button
+                            key={cr.id}
+                            onClick={() => {
+                              setReply(cr.content);
+                              setShowCanned(false);
+                            }}
+                            className="text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 px-2.5 py-1 rounded-full transition-colors"
+                          >
+                            {cr.title}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex gap-3 items-end">
                   <textarea
                     value={reply}
@@ -457,8 +527,8 @@ export default function EscalationsPage() {
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-                  <WifiOff className="w-3 h-3" />
+                <p className="text-xs text-gray-400 flex items-center gap-1">
+                  <Wifi className="w-3 h-3 text-green-500" />
                   Customer sees your messages in real-time via polling
                 </p>
               </div>

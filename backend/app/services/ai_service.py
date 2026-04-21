@@ -226,7 +226,7 @@ def _mock_response(message: str, language: str) -> Dict:
 
     # Default
     resp = (
-        "I'm **Priya**, your SSR Airport AI assistant. I'm here to help with your journey.\n\n"
+        "I'm **Priya**, your AASS Airport Assistant. I'm here to help with your journey.\n\n"
         "Here are some things I can do for you:\n"
         "- **Flight status** — e.g. *\"Status of MK014\"*\n"
         "- **Booking lookup** — e.g. *\"Look up PNR ABC123\"*\n"

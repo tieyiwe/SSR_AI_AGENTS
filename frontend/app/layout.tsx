@@ -6,10 +6,10 @@ import ChatWidget from "@/components/chat/ChatWidget";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SSR Airport AI — Air Mauritius",
-  description: "AI-powered passenger assistance for SSR International Airport, Mauritius",
+  title: "AASS — Air Mauritius",
+  description: "SSR-Airport Advanced Assisting System — AI-powered passenger assistance for SSR International Airport, Mauritius",
   icons: { icon: "/favicon.ico" },
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "SSR Airport AI" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "AASS" },
 };
 
 // Full-bleed viewport for iPhone notch and Android punch-hole
