@@ -1,5 +1,4 @@
 import httpx
-import os
 from typing import Dict, List, Optional
 
 from app.core.config import settings
@@ -15,11 +14,15 @@ class BlandVoiceService:
         phone_number: str,
         language: str = "en",
         context: Optional[Dict] = None,
+        voice_id: Optional[str] = None,
     ) -> Dict:
+        from app.core.admin_config import get_voice_id
+        voice = voice_id or get_voice_id()
+
         payload = {
             "phone_number": phone_number,
             "task": self._build_task_prompt(language, context),
-            "voice": "nat",
+            "voice": voice,
             "language": self._map_language(language),
             "model": "enhanced",
             "max_duration": 10,
@@ -28,6 +31,8 @@ class BlandVoiceService:
             "transfer_phone_number": settings.SSR_HUMAN_AGENTS_NUMBER,
             "webhook": f"{settings.API_BASE_URL}/api/v1/voice/bland-webhook",
             "tools": self._get_tools(),
+            "interruption_threshold": 120,
+            "temperature": 0.7,
         }
 
         async with httpx.AsyncClient() as client:
@@ -51,40 +56,56 @@ class BlandVoiceService:
             return response.json()
 
     def _build_task_prompt(self, language: str, context: Optional[Dict]) -> str:
+        from app.core.admin_config import get_config
+        cfg = get_config()
+        agent_name = cfg.get("agent_name", "Aida")
         lang_name = self._get_language_name(language)
+        lang_extra = cfg.get("language_instructions", {}).get(language, "")
 
-        prompt = f"""You are the voice AI assistant for SSR International Airport (Air Mauritius) in Mauritius.
+        prompt = f"""You are {agent_name}, the voice AI assistant for SSR International Airport (Air Mauritius), Mauritius.
 
-LANGUAGE: Respond in {lang_name}. If caller uses a different language, match it.
+LANGUAGE: Respond in {lang_name}. If the caller uses a different language, match them immediately.
+
+IDENTITY & TONE:
+- Warm, professional, and patient — embody Mauritian hospitality
+- Speak clearly at a moderate pace; avoid filler words
+- Acknowledge emotions before solving problems
+- Use the caller's name if confirmed from their booking
 
 CAPABILITIES:
-1. Check flight status — use get_flight_status tool
-2. Look up bookings — use get_booking_info tool
-3. Airport information (gates, lounges, facilities)
-4. Special services (meals, wheelchair)
-5. Transfer to human agent when needed
+1. Real-time flight status — use get_flight_status tool
+2. Booking / PNR lookup — use get_booking_info tool
+3. Airport information (gates, lounges, check-in, facilities)
+4. Special services (meals ≥24 h, wheelchair ≥48 h before departure)
+5. Transfer to human agent when required
 
-TONE: Professional, friendly, patient. Clear pronunciation, moderate pace.
+PHONETIC PROTOCOL:
+- Confirm flight numbers phonetically: "M as in Mike, K as in Kilo, zero-one-four"
+- Repeat critical data (gates, times, PNR) once for confirmation
+- Spell out PNR codes letter by letter
 
-CRITICAL RULES:
-- Confirm flight numbers by spelling: "M as in Mike, K as in Kilo, zero-one-four"
-- Repeat critical information (gates, times, PNR)
-- Keep calls concise (target 2-3 minutes)
-- If uncertain, transfer to human
+VOICE GUIDELINES:
+- Keep calls focused; target 2–3 minutes for routine queries
+- Pause briefly after delivering information to allow caller to respond
+- If the caller is distressed, lower your pace and increase empathy
 
-TRANSFER CONDITIONS (say transfer phrase and transfer):
-- Booking modification, cancellation, date change
-- Payment or refund request
-- Complaint or urgent issue
-- Unable to understand after asking twice
-- Caller requests human agent
+ESCALATION — transfer immediately when:
+- Booking modification, cancellation, date change, or upgrade request
+- Payment, refund, or compensation request
+- Formal complaint about staff or service
+- Caller cannot be understood after two attempts
+- Caller explicitly requests a human agent
 
-GREETING: "Hello, Air Mauritius SSR Airport AI Assistant speaking. How may I help you today?"
+ESCALATION PHRASE: "I completely understand. Let me connect you with our customer service team right away — they have full authority to help you with this. Please hold for just a moment."
 
-TRANSFER PHRASE: "I'll connect you with our customer service team who can better assist you. Please hold."""
+GREETING: "Hello, this is {agent_name} from Air Mauritius SSR Airport. How may I assist you today?"
 
+CLOSING: "Thank you for calling SSR International Airport. Have a wonderful journey!"{lang_extra}"""
+
+        if lang_extra:
+            prompt += f"\n\nADMIN INSTRUCTIONS: {lang_extra}"
         if context and context.get("verified_pnr"):
-            prompt += f"\n\nCALLER CONTEXT: Previously verified booking {context['verified_pnr']}"
+            prompt += f"\n\nCALLER CONTEXT: Verified booking reference on file: {context['verified_pnr']}"
 
         return prompt
 
@@ -93,7 +114,7 @@ TRANSFER PHRASE: "I'll connect you with our customer service team who can better
         return [
             {
                 "name": "get_flight_status",
-                "description": "Get real-time flight status by flight number",
+                "description": "Get real-time flight status, gate, and departure time",
                 "url": f"{api_base}/api/v1/flights/{{flight_number}}",
                 "method": "GET",
                 "input_schema": {
@@ -101,7 +122,7 @@ TRANSFER PHRASE: "I'll connect you with our customer service team who can better
                     "properties": {
                         "flight_number": {
                             "type": "string",
-                            "description": "Flight number e.g. MK014",
+                            "description": "IATA flight number e.g. MK014",
                         }
                     },
                     "required": ["flight_number"],
@@ -131,7 +152,7 @@ TRANSFER PHRASE: "I'll connect you with our customer service team who can better
     def _get_language_name(self, code: str) -> str:
         return {
             "en": "English",
-            "fr": "French",
-            "cr": "Mauritian Creole (use French as fallback)",
-            "hi": "Hindi",
+            "fr": "French (Français)",
+            "cr": "Mauritian Creole (use French as fallback, mix naturally)",
+            "hi": "Hindi (हिन्दी)",
         }.get(code, "English")

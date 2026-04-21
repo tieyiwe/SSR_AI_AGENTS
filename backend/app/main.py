@@ -5,7 +5,7 @@ import sentry_sdk
 
 from app.core.config import settings
 from app.core.database import init_db, close_db
-from app.api.v1 import chat, voice, flights, bookings, analytics, whatsapp
+from app.api.v1 import chat, voice, flights, bookings, analytics, whatsapp, admin
 
 
 @asynccontextmanager
@@ -47,6 +47,7 @@ app.include_router(flights.router, prefix="/api/v1/flights", tags=["Flights"])
 app.include_router(bookings.router, prefix="/api/v1/bookings", tags=["Bookings"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
 app.include_router(whatsapp.router, prefix="/api/v1/whatsapp", tags=["WhatsApp"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 
 @app.get("/health")

@@ -2,17 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Phone, Settings, Home, Plane } from "lucide-react";
+import {
+  BarChart3, Phone, Settings, Home, Plane,
+  ShieldCheck, Bot, Languages, Wrench, ChevronDown, ChevronRight,
+} from "lucide-react";
 import { clsx } from "clsx";
+import { useState } from "react";
 
-const navItems = [
+const mainNav = [
   { href: "/dashboard", label: "Overview", icon: BarChart3 },
   { href: "/calls", label: "Call Logs", icon: Phone },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+const adminNav = [
+  { href: "/admin", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/agents", label: "Agent Config", icon: Bot },
+  { href: "/admin/languages", label: "Languages", icon: Languages },
+  { href: "/admin/tools", label: "Connectors", icon: Wrench },
+];
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isInAdmin = pathname.startsWith("/admin");
+  const [adminOpen, setAdminOpen] = useState(isInAdmin);
 
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -29,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => (
+          {mainNav.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -44,6 +57,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {label}
             </Link>
           ))}
+
+          {/* Admin section */}
+          <div className="pt-2">
+            <button
+              onClick={() => setAdminOpen(!adminOpen)}
+              className={clsx(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                isInAdmin
+                  ? "bg-brand-700 text-white font-medium"
+                  : "text-brand-200 hover:bg-brand-800 hover:text-white"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span className="flex-1 text-left">Admin</span>
+              {adminOpen
+                ? <ChevronDown className="w-3 h-3 opacity-60" />
+                : <ChevronRight className="w-3 h-3 opacity-60" />
+              }
+            </button>
+
+            {adminOpen && (
+              <div className="ml-4 mt-1 space-y-0.5 border-l border-brand-700 pl-3">
+                {adminNav.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={clsx(
+                      "flex items-center gap-2.5 px-2 py-2 rounded-lg text-xs transition-colors",
+                      pathname === href
+                        ? "bg-brand-700 text-white font-medium"
+                        : "text-brand-300 hover:bg-brand-800 hover:text-white"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="p-4 border-t border-brand-700">
