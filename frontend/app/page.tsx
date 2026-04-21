@@ -128,8 +128,8 @@ export default function HomePage() {
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold text-sm">Web Chat</p>
-                  <p className="text-brand-200 text-xs">Chat in your browser now</p>
+                  <p className="font-semibold text-sm">Instant Chat</p>
+                  <p className="text-brand-200 text-xs">Instant chat, no app needed</p>
                 </div>
                 <span className="text-brand-200 text-lg group-hover:translate-x-0.5 transition-transform">→</span>
               </Link>

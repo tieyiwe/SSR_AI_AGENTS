@@ -65,7 +65,7 @@ function StarBar({ dist }: { dist: Record<string, number> }) {
 }
 
 const LANG_LABELS: Record<string, string> = { en: "English", fr: "Français", cr: "Kreol", hi: "हिन्दी" };
-const CHAN_LABELS: Record<string, string> = { web: "Web Chat", whatsapp: "WhatsApp", phone: "Phone" };
+const CHAN_LABELS: Record<string, string> = { web: "Instant Chat", whatsapp: "WhatsApp", phone: "Phone" };
 
 export default function AdminPage() {
   const [status, setStatus] = useState<SystemStatus | null>(null);

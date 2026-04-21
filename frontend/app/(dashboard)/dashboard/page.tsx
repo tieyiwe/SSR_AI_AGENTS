@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
   const channelRows = data?.by_channel
     ? Object.entries(data.by_channel).map(([key, v]) => ({
-        channel: key === "phone" ? "Phone" : key === "whatsapp" ? "WhatsApp" : "Web Chat",
+        channel: key === "phone" ? "Phone" : key === "whatsapp" ? "WhatsApp" : "Instant Chat",
         count: v.count,
         pct: data.metrics.total_conversations > 0
           ? Math.round((v.count / data.metrics.total_conversations) * 1000) / 10
