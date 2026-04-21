@@ -5,16 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3, Phone, Settings, Home, Plane,
   ShieldCheck, Bot, Languages, Wrench, ChevronDown, ChevronRight, LogOut,
-  AlertTriangle,
+  AlertTriangle, Users,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useState, useEffect } from "react";
 
 const mainNav = [
-  { href: "/dashboard", label: "Overview", icon: BarChart3 },
-  { href: "/calls", label: "Call Logs", icon: Phone },
+  { href: "/dashboard",   label: "Overview",    icon: BarChart3 },
+  { href: "/calls",       label: "Call Logs",   icon: Phone },
   { href: "/escalations", label: "Escalations", icon: AlertTriangle },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/team",        label: "Team",        icon: Users },
+  { href: "/settings",    label: "Settings",    icon: Settings },
 ];
 
 const adminNav = [
