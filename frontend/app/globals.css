@@ -24,7 +24,18 @@
 
 @layer base {
   * { border-color: hsl(var(--border)); }
-  body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-tap-highlight-color: transparent; /* remove grey flash on tap (iOS/Android) */
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none; /* prevent pull-to-refresh on native feel */
+  }
+  /* Safe-area padding helpers for iPhone notch / home bar */
+  .safe-top    { padding-top:    env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-left   { padding-left:   env(safe-area-inset-left); }
+  .safe-right  { padding-right:  env(safe-area-inset-right); }
 }
 
 /* Chat bubble animations */

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { Plane, MessageCircle, Phone, Globe } from "lucide-react";
 
+const PHONE_NUMBER = "+230 603 8000";
+const PHONE_TEL    = "tel:+2306038000";
+const WA_NUMBER    = "14155238886";
+const WA_MSG       = encodeURIComponent("Hello Priya, I need assistance at SSR Airport.");
+
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -11,21 +16,23 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 flex flex-col">
+    <main className="min-h-screen bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 flex flex-col safe-top">
       {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-white text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Plane className="w-10 h-10 text-gold-400" />
+      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 text-white text-center">
+
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <Plane className="w-9 h-9 text-gold-400" />
           <div className="text-left">
-            <h1 className="text-3xl font-bold leading-tight">SSR Airport AI</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold leading-tight">SSR Airport AI</h1>
             <p className="text-brand-200 text-sm">Air Mauritius · Available 24/7</p>
           </div>
         </div>
 
         {/* Priya introduction */}
-        <div className="mt-6 mb-10 flex flex-col items-center gap-3">
+        <div className="mb-8 flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-4 border-white/20 flex items-center justify-center shadow-xl text-2xl font-bold">
-            A
+            P
           </div>
           <div>
             <h2 className="text-xl font-bold">Meet Priya</h2>
@@ -37,17 +44,18 @@ export default function HomePage() {
           </div>
         </div>
 
-        <p className="text-brand-100 text-base mb-10 max-w-xl mx-auto">
+        <p className="text-brand-100 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
           Priya helps you with flight status, bookings, special requests, and airport information
           — instantly, in your language.
         </p>
 
-        {/* Contact channels */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-10">
-          {/* Web chat */}
+        {/* Contact channels — single column on mobile, 3 cols on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-3xl mb-8">
+
+          {/* Web Chat */}
           <Link
             href="/chat"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur rounded-2xl p-5 transition-all border border-white/20 text-left group hover:scale-105"
+            className="bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur rounded-2xl p-5 transition-all border border-white/20 text-left group hover:scale-105 active:scale-100"
           >
             <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center mb-3">
               <MessageCircle className="w-5 h-5 text-white" />
@@ -63,10 +71,10 @@ export default function HomePage() {
 
           {/* WhatsApp */}
           <a
-            href={`https://wa.me/14155238886?text=${encodeURIComponent("Hello Priya, I need assistance at SSR Airport.")}`}
+            href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-green-500/20 hover:bg-green-500/30 backdrop-blur rounded-2xl p-5 transition-all border border-green-400/30 text-left group hover:scale-105"
+            className="bg-green-500/20 hover:bg-green-500/30 active:bg-green-500/40 backdrop-blur rounded-2xl p-5 transition-all border border-green-400/30 text-left group hover:scale-105 active:scale-100"
           >
             <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center mb-3">
               <WhatsAppIcon className="w-5 h-5 text-white" />
@@ -83,21 +91,28 @@ export default function HomePage() {
             </div>
           </a>
 
-          {/* Phone */}
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20 text-left">
+          {/* Phone — tel: link triggers native dialer on mobile */}
+          <a
+            href={PHONE_TEL}
+            className="bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur rounded-2xl p-5 transition-all border border-white/20 text-left group hover:scale-105 active:scale-100"
+          >
             <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center mb-3">
               <Phone className="w-5 h-5 text-white" />
             </div>
-            <h3 className="font-bold text-sm mb-1">Phone</h3>
+            <h3 className="font-bold text-sm mb-1">Call Us</h3>
             <p className="text-brand-200 text-xs leading-relaxed">
-              Call us and Priya will assist you over the phone, 24 hours a day.
+              Tap to call — Priya will assist you over the phone, 24 hours a day.
             </p>
-            <p className="mt-3 text-xs font-bold text-gold-400">+230 603 8000</p>
-          </div>
+            {/* Mobile: shows "Tap to call", desktop: shows the number */}
+            <p className="mt-3 text-xs font-bold text-gold-400 group-hover:underline">
+              <span className="sm:hidden">Tap to call →</span>
+              <span className="hidden sm:inline">{PHONE_NUMBER} →</span>
+            </p>
+          </a>
         </div>
 
         {/* Language badges */}
-        <div className="flex items-center gap-2 flex-wrap justify-center mb-10">
+        <div className="flex items-center gap-2 flex-wrap justify-center mb-8">
           <Globe className="w-4 h-4 text-brand-300" />
           <span className="text-brand-300 text-xs">Available in:</span>
           {["🇬🇧 English", "🇫🇷 Français", "🇲🇺 Kreol", "🇮🇳 हिन्दी"].map(lang => (
@@ -107,13 +122,13 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
+        {/* Stats — 2 cols on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
           {[
             { value: "70%", label: "Automation Rate" },
             { value: "<5s", label: "Response Time" },
-            { value: "4", label: "Languages" },
-            { value: "24/7", label: "Availability" },
+            { value: "4",   label: "Languages" },
+            { value: "24/7",label: "Availability" },
           ].map(({ value, label }) => (
             <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
               <div className="text-xl font-bold text-gold-400">{value}</div>
@@ -123,8 +138,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Footer — staff access hidden, not highlighted */}
-      <footer className="py-4 text-center">
+      {/* Footer */}
+      <footer className="py-4 text-center safe-bottom">
         <p className="text-brand-400 text-xs">
           SSR International Airport · Mauritius
           <span className="mx-2">·</span>

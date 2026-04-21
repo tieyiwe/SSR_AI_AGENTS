@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { X, MessageCircle, Minimize2, ExternalLink } from "lucide-react";
 import { clsx } from "clsx";
@@ -26,6 +26,14 @@ export default function ChatWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"chat" | "whatsapp">("chat");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Don't render on full chat page, login, or dashboard routes
   if (
@@ -39,17 +47,21 @@ export default function ChatWidget() {
     return null;
   }
 
+  // Panel dimensions — full screen on mobile, fixed card on desktop
+  const panelCls = isMobile
+    ? "fixed inset-0 z-50 flex flex-col bg-white"
+    : "w-[360px] h-[560px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden";
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className={clsx("z-50", isMobile ? "" : "fixed bottom-6 right-6 flex flex-col items-end gap-3")}>
       {/* Expanded panel */}
       {open && (
-        <div className={clsx(
-          "w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden",
-          "transition-all duration-300",
-          "h-[560px]"
-        )}>
-          {/* Panel header */}
-          <div className="bg-gradient-to-r from-brand-700 to-brand-600 px-4 py-3 flex items-center gap-3">
+        <div className={panelCls}>
+          {/* Panel header — with safe-area top on mobile */}
+          <div className={clsx(
+            "bg-gradient-to-r from-brand-700 to-brand-600 px-4 py-3 flex items-center gap-3 flex-shrink-0",
+            isMobile && "safe-top"
+          )}>
             <PriyaAvatar size="md" />
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm leading-tight">Priya</p>
@@ -60,13 +72,15 @@ export default function ChatWidget() {
               <span className="text-green-300 text-xs">Online</span>
             </div>
             <div className="flex items-center gap-1 ml-2">
-              <button
-                onClick={() => setOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-brand-600 transition-colors text-brand-100 hover:text-white"
-                title="Minimise"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-              </button>
+              {!isMobile && (
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-brand-600 transition-colors text-brand-100 hover:text-white"
+                  title="Minimise"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-brand-600 transition-colors text-brand-100 hover:text-white"
@@ -78,11 +92,11 @@ export default function ChatWidget() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex border-b border-gray-100 flex-shrink-0">
             <button
               onClick={() => setTab("chat")}
               className={clsx(
-                "flex-1 py-2 text-xs font-medium transition-colors",
+                "flex-1 py-2.5 text-xs font-medium transition-colors",
                 tab === "chat"
                   ? "text-brand-600 border-b-2 border-brand-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -93,7 +107,7 @@ export default function ChatWidget() {
             <button
               onClick={() => setTab("whatsapp")}
               className={clsx(
-                "flex-1 py-2 text-xs font-medium transition-colors",
+                "flex-1 py-2.5 text-xs font-medium transition-colors",
                 tab === "whatsapp"
                   ? "text-green-600 border-b-2 border-green-500"
                   : "text-gray-500 hover:text-gray-700"
@@ -106,31 +120,39 @@ export default function ChatWidget() {
           </div>
 
           {/* Tab content */}
-          {tab === "chat" ? (
-            <ChatInterface className="flex flex-col flex-1 min-h-0 overflow-hidden" />
-          ) : (
-            <WhatsAppTab />
-          )}
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            {tab === "chat" ? (
+              <ChatInterface className="flex flex-col flex-1 min-h-0 overflow-hidden" />
+            ) : (
+              <WhatsAppTab />
+            )}
+          </div>
+
+          {/* Safe area bottom spacer on mobile */}
+          {isMobile && <div className="safe-bottom flex-shrink-0 bg-white" />}
         </div>
       )}
 
-      {/* Floating button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className={clsx(
-          "group flex items-center gap-3 px-4 py-3 rounded-full shadow-xl transition-all duration-300",
-          "bg-gradient-to-r from-brand-600 to-brand-700 text-white",
-          "hover:from-brand-700 hover:to-brand-800 hover:shadow-2xl hover:scale-105",
-          open && "opacity-0 pointer-events-none scale-90"
-        )}
-      >
-        <PriyaAvatar size="sm" />
-        <div className="text-left">
-          <p className="text-xs font-bold leading-tight">Chat with Priya</p>
-          <p className="text-brand-200 text-xs">AI Airport Assistant</p>
-        </div>
-        <MessageCircle className="w-4 h-4 text-brand-200 group-hover:text-white transition-colors" />
-      </button>
+      {/* Floating button — hide when panel is open on mobile (panel is full screen) */}
+      {(!open || !isMobile) && (
+        <button
+          onClick={() => setOpen(!open)}
+          className={clsx(
+            "group flex items-center gap-3 px-4 py-3 rounded-full shadow-xl transition-all duration-300",
+            "bg-gradient-to-r from-brand-600 to-brand-700 text-white",
+            "hover:from-brand-700 hover:to-brand-800 hover:shadow-2xl hover:scale-105 active:scale-95",
+            isMobile ? "fixed bottom-5 right-5 z-50" : "",
+            open && !isMobile && "opacity-0 pointer-events-none scale-90"
+          )}
+        >
+          <PriyaAvatar size="sm" />
+          <div className="text-left">
+            <p className="text-xs font-bold leading-tight">Chat with Priya</p>
+            <p className="text-brand-200 text-xs">AI Airport Assistant</p>
+          </div>
+          <MessageCircle className="w-4 h-4 text-brand-200 group-hover:text-white transition-colors" />
+        </button>
+      )}
     </div>
   );
 }

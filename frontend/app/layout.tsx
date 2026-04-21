@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ChatWidget from "@/components/chat/ChatWidget";
@@ -9,6 +9,15 @@ export const metadata: Metadata = {
   title: "SSR Airport AI — Air Mauritius",
   description: "AI-powered passenger assistance for SSR International Airport, Mauritius",
   icons: { icon: "/favicon.ico" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "SSR Airport AI" },
+};
+
+// Full-bleed viewport for iPhone notch and Android punch-hole
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1e3a5f",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
