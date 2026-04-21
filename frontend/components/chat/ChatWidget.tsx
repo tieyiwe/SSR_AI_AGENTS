@@ -8,9 +8,9 @@ import ChatInterface from "./ChatInterface";
 
 // WhatsApp number for SSR Airport AI (Twilio sandbox or production)
 const WHATSAPP_NUMBER = "14155238886"; // without +, used in wa.me link
-const WHATSAPP_MSG = encodeURIComponent("Hello Aida, I need assistance at SSR Airport.");
+const WHATSAPP_MSG = encodeURIComponent("Hello Priya, I need assistance at SSR Airport.");
 
-function AidaAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+function PriyaAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sz = size === "sm" ? "w-7 h-7 text-xs" : size === "lg" ? "w-12 h-12 text-lg" : "w-9 h-9 text-sm";
   return (
     <div className={clsx(
@@ -50,9 +50,9 @@ export default function ChatWidget() {
         )}>
           {/* Panel header */}
           <div className="bg-gradient-to-r from-brand-700 to-brand-600 px-4 py-3 flex items-center gap-3">
-            <AidaAvatar size="md" />
+            <PriyaAvatar size="md" />
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm leading-tight">Aida</p>
+              <p className="text-white font-semibold text-sm leading-tight">Priya</p>
               <p className="text-brand-100 text-xs">SSR Airport AI Assistant</p>
             </div>
             <div className="flex items-center gap-1.5">
@@ -124,9 +124,9 @@ export default function ChatWidget() {
           open && "opacity-0 pointer-events-none scale-90"
         )}
       >
-        <AidaAvatar size="sm" />
+        <PriyaAvatar size="sm" />
         <div className="text-left">
-          <p className="text-xs font-bold leading-tight">Chat with Aida</p>
+          <p className="text-xs font-bold leading-tight">Chat with Priya</p>
           <p className="text-brand-200 text-xs">AI Airport Assistant</p>
         </div>
         <MessageCircle className="w-4 h-4 text-brand-200 group-hover:text-white transition-colors" />
@@ -146,7 +146,7 @@ function WhatsAppTab() {
 
       <h3 className="font-bold text-gray-900 text-base mb-1">Chat on WhatsApp</h3>
       <p className="text-sm text-gray-500 text-center mb-6 max-w-[240px]">
-        Get instant help from Aida directly in WhatsApp — available 24/7 in English, Français, Kreol & हिन्दी.
+        Get instant help from Priya directly in WhatsApp — available 24/7 in English, Français, Kreol & हिन्दी.
       </p>
 
       {/* Steps */}
@@ -154,7 +154,7 @@ function WhatsAppTab() {
         {[
           { step: "1", text: "Tap the button below to open WhatsApp" },
           { step: "2", text: "Send the pre-filled greeting message" },
-          { step: "3", text: "Aida will respond within seconds" },
+          { step: "3", text: "Priya will respond within seconds" },
         ].map(({ step, text }) => (
           <div key={step} className="flex items-start gap-3 bg-white rounded-xl px-3 py-2 border border-green-100">
             <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">

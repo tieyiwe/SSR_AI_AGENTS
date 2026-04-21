@@ -124,7 +124,7 @@ function LoginForm() {
             <p className="text-xs text-gray-400">
               Looking for passenger assistance?{" "}
               <a href="/chat" className="text-brand-600 font-medium hover:underline">
-                Chat with Aida →
+                Chat with Priya →
               </a>
             </p>
           </div>

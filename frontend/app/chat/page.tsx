@@ -12,14 +12,14 @@ export default function ChatPage() {
           <ArrowLeft className="w-4 h-4" />
         </Link>
 
-        {/* Aida avatar */}
+        {/* Priya avatar */}
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-2 border-white/30 flex items-center justify-center font-bold text-sm shrink-0">
           A
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="font-bold text-sm">Aida</h1>
+            <h1 className="font-bold text-sm">Priya</h1>
             <span className="text-xs bg-white/10 border border-white/20 rounded-full px-2 py-0.5 text-brand-100">
               AI Assistant
             </span>

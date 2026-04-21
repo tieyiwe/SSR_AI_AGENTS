@@ -506,7 +506,7 @@ async def claim_escalation(conv_id: str, body: ClaimRequest):
     greeting = {
         "id": str(time.time()),
         "from": "agent",
-        "content": f"Hi! I'm {body.agent_name}, a human agent. I've taken over from Aida and I'll help you personally. How can I assist you?",
+        "content": f"Hi! I'm {body.agent_name}, a human agent. I've taken over from Priya and I'll help you personally. How can I assist you?",
         "ts": datetime.now(timezone.utc).isoformat(),
         "read": False,
     }

@@ -58,7 +58,7 @@ class BlandVoiceService:
     def _build_task_prompt(self, language: str, context: Optional[Dict]) -> str:
         from app.core.admin_config import get_config
         cfg = get_config()
-        agent_name = cfg.get("agent_name", "Aida")
+        agent_name = cfg.get("agent_name", "Priya")
         lang_name = self._get_language_name(language)
         lang_extra = cfg.get("language_instructions", {}).get(language, "")
 

@@ -89,7 +89,7 @@ export default function AgentsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Agent Configuration</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Customise Aida's behaviour, voice, escalation settings, and per-language instructions
+          Customise Priya's behaviour, voice, escalation settings, and per-language instructions
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export default function AgentsPage() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
               value={config.agent_name}
               onChange={e => setConfig({ ...config, agent_name: e.target.value })}
-              placeholder="Aida"
+              placeholder="Priya"
             />
           </div>
           <div>
@@ -248,7 +248,7 @@ export default function AgentsPage() {
         {showPrompt && (
           <div className="mt-4 space-y-3">
             <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              ⚠️ Overriding the system prompt replaces the entire optimised Aida prompt. Leave blank to use the default.
+              ⚠️ Overriding the system prompt replaces the entire optimised Priya prompt. Leave blank to use the default.
             </p>
             <textarea
               rows={12}

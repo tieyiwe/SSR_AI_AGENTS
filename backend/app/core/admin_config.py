@@ -11,7 +11,7 @@ import threading
 _lock = threading.Lock()
 
 _store: dict = {
-    "agent_name": "Aida",
+    "agent_name": "Priya",
     "voice_gender": "random",           # male | female | random
     "escalation_threshold": 0.7,
     "system_prompt_override": None,     # None = use built-in optimised default

@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class AgentConfig(BaseModel):
-    agent_name: str = "Aida"
+    agent_name: str = "Priya"
     voice_gender: str = "random"                    # male | female | random
     escalation_threshold: float = Field(0.7, ge=0.0, le=1.0)
     system_prompt_override: Optional[str] = None

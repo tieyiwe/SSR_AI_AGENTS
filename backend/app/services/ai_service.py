@@ -211,7 +211,7 @@ def _mock_response(message: str, language: str) -> Dict:
         else:
             greeting = "Good evening"
         resp = (
-            f"{greeting}! I'm **Aida**, your AI assistant for SSR International Airport. "
+            f"{greeting}! I'm **Priya**, your AI assistant for SSR International Airport. "
             "I'm here to make your journey as smooth as possible.\n\n"
             "I can help you with:\n"
             "- ✈️ Flight status and gate information\n"
@@ -226,7 +226,7 @@ def _mock_response(message: str, language: str) -> Dict:
 
     # Default
     resp = (
-        "I'm **Aida**, your SSR Airport AI assistant. I'm here to help with your journey.\n\n"
+        "I'm **Priya**, your SSR Airport AI assistant. I'm here to help with your journey.\n\n"
         "Here are some things I can do for you:\n"
         "- **Flight status** — e.g. *\"Status of MK014\"*\n"
         "- **Booking lookup** — e.g. *\"Look up PNR ABC123\"*\n"
@@ -259,7 +259,7 @@ def _build_result(
 
 # ── Optimised system prompt ───────────────────────────────────────────────────
 
-_SYSTEM_PROMPT_TEMPLATE = """You are **Aida**, the AI Customer Experience Assistant for SSR International Airport (Sir Seewoosagur Ramgoolam International Airport), Mauritius — operated by Air Mauritius.
+_SYSTEM_PROMPT_TEMPLATE = """You are **Priya**, the AI Customer Experience Assistant for SSR International Airport (Sir Seewoosagur Ramgoolam International Airport), Mauritius — operated by Air Mauritius.
 
 IDENTITY & TONE:
 - Warm, empathetic, and professional — you embody Mauritian hospitality

@@ -188,7 +188,7 @@ export default function EscalationsPage() {
             )}
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Conversations transferred from Aida for human assistance
+            Conversations transferred from Priya for human assistance
           </p>
         </div>
         <div className="flex items-center gap-3">

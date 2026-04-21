@@ -59,14 +59,14 @@ function RatingWidget({
     return (
       <div className="mx-4 mb-3 bg-green-50 border border-green-200 rounded-xl p-4 text-center">
         <p className="text-sm font-semibold text-green-700">Thank you for your feedback! 🙏</p>
-        <p className="text-xs text-green-600 mt-0.5">Your rating helps us improve Aida.</p>
+        <p className="text-xs text-green-600 mt-0.5">Your rating helps us improve Priya.</p>
       </div>
     );
   }
 
   return (
     <div className="mx-4 mb-3 bg-brand-50 border border-brand-200 rounded-xl p-4 space-y-3">
-      <p className="text-sm font-semibold text-gray-800">How did Aida do?</p>
+      <p className="text-sm font-semibold text-gray-800">How did Priya do?</p>
 
       {/* Star rating */}
       <div className="flex items-center gap-1">
@@ -158,7 +158,7 @@ export default function ChatInterface({ className }: { className?: string }) {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm **Aida**, your SSR Airport AI assistant. I can help you with flight status, bookings, special requests, and airport information. How can I assist you today?",
+      content: "Hello! I'm **Priya**, your SSR Airport AI assistant. I can help you with flight status, bookings, special requests, and airport information. How can I assist you today?",
       timestamp: new Date(),
     },
   ]);

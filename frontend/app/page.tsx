@@ -22,13 +22,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Aida introduction */}
+        {/* Priya introduction */}
         <div className="mt-6 mb-10 flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-4 border-white/20 flex items-center justify-center shadow-xl text-2xl font-bold">
             A
           </div>
           <div>
-            <h2 className="text-xl font-bold">Meet Aida</h2>
+            <h2 className="text-xl font-bold">Meet Priya</h2>
             <p className="text-brand-200 text-sm">Your personal airport AI assistant</p>
           </div>
           <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-400/30 rounded-full px-3 py-1">
@@ -38,7 +38,7 @@ export default function HomePage() {
         </div>
 
         <p className="text-brand-100 text-base mb-10 max-w-xl mx-auto">
-          Aida helps you with flight status, bookings, special requests, and airport information
+          Priya helps you with flight status, bookings, special requests, and airport information
           — instantly, in your language.
         </p>
 
@@ -54,7 +54,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-sm mb-1">Web Chat</h3>
             <p className="text-brand-200 text-xs leading-relaxed">
-              Chat with Aida right here in your browser — no app needed.
+              Chat with Priya right here in your browser — no app needed.
             </p>
             <span className="mt-3 inline-block text-xs font-semibold text-gold-400 group-hover:underline">
               Start chatting →
@@ -63,7 +63,7 @@ export default function HomePage() {
 
           {/* WhatsApp */}
           <a
-            href={`https://wa.me/14155238886?text=${encodeURIComponent("Hello Aida, I need assistance at SSR Airport.")}`}
+            href={`https://wa.me/14155238886?text=${encodeURIComponent("Hello Priya, I need assistance at SSR Airport.")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-green-500/20 hover:bg-green-500/30 backdrop-blur rounded-2xl p-5 transition-all border border-green-400/30 text-left group hover:scale-105"
@@ -73,7 +73,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-sm mb-1">WhatsApp</h3>
             <p className="text-brand-200 text-xs leading-relaxed">
-              Message Aida on WhatsApp anytime — from anywhere in the world.
+              Message Priya on WhatsApp anytime — from anywhere in the world.
             </p>
             <div className="mt-3 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -90,7 +90,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-sm mb-1">Phone</h3>
             <p className="text-brand-200 text-xs leading-relaxed">
-              Call us and Aida will assist you over the phone, 24 hours a day.
+              Call us and Priya will assist you over the phone, 24 hours a day.
             </p>
             <p className="mt-3 text-xs font-bold text-gold-400">+230 603 8000</p>
           </div>
