@@ -14,7 +14,7 @@ import {
 const data = [
   { day: "Mon", ai: 1550, human: 620 },
   { day: "Tue", ai: 1680, human: 580 },
-  { day: "Wed", day_label: "Wed", ai: 1420, human: 710 },
+  { day: "Wed", ai: 1420, human: 710 },
   { day: "Thu", ai: 1740, human: 550 },
   { day: "Fri", ai: 1890, human: 490 },
   { day: "Sat", ai: 1200, human: 400 },

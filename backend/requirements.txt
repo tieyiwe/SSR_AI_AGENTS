@@ -6,12 +6,6 @@ pydantic-settings==2.2.1
 
 # Database
 asyncpg==0.29.0
-sqlalchemy[asyncio]==2.0.29
-alembic==1.13.1
-
-# Redis
-redis==5.0.4
-celery==5.4.0
 
 # AI
 anthropic==0.25.9
@@ -22,16 +16,13 @@ httpx==0.27.0
 
 # Auth
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
 
 # Monitoring
 sentry-sdk[fastapi]==1.45.0
 
-# Utilities
+# Multipart form handling (Twilio webhooks)
 python-multipart==0.0.9
-orjson==3.10.3
 
 # Testing
 pytest==8.2.0
 pytest-asyncio==0.23.6
-httpx==0.27.0
