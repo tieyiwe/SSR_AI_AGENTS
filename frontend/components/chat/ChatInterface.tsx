@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Send, Star, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send, Star, ThumbsUp, ThumbsDown, User, Clock } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import LanguageSelector from "./LanguageSelector";
 import { clsx } from "clsx";
@@ -153,7 +153,7 @@ function RatingWidget({
 
 // ── Main chat component ───────────────────────────────────────────────────────
 
-export default function ChatInterface() {
+export default function ChatInterface({ className }: { className?: string }) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -168,6 +168,9 @@ export default function ChatInterface() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState(SUGGESTIONS);
   const [showRating, setShowRating] = useState(false);
+  const [isEscalated, setIsEscalated] = useState(false);
+  const [agentClaimed, setAgentClaimed] = useState(false);
+  const [lastPollTs, setLastPollTs] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const userMessageCount = messages.filter(m => m.role === "user").length;
@@ -183,6 +186,44 @@ export default function ChatInterface() {
     }
   }, [userMessageCount, conversationId, showRating]);
 
+  // Poll for human agent messages when escalated
+  useEffect(() => {
+    if (!isEscalated || !conversationId) return;
+    const poll = async () => {
+      try {
+        const url = lastPollTs
+          ? `/api/backend/v1/chat/poll/${conversationId}?since=${lastPollTs}`
+          : `/api/backend/v1/chat/poll/${conversationId}`;
+        const r = await fetch(url);
+        if (!r.ok) return;
+        const data = await r.json();
+        if (data.claimed && !agentClaimed) {
+          setAgentClaimed(true);
+        }
+        if (data.messages?.length) {
+          const lastTs = data.messages[data.messages.length - 1].ts;
+          setLastPollTs(lastTs);
+          setMessages(prev => [
+            ...prev,
+            ...data.messages.map((m: { id: string; content: string; ts: string }) => ({
+              id: `agent-${m.id}`,
+              role: "assistant" as const,
+              content: m.content,
+              timestamp: new Date(m.ts),
+              isHumanAgent: true,
+            })),
+          ]);
+        }
+        if (data.resolved) {
+          setIsEscalated(false);
+        }
+      } catch { /* ignore */ }
+    };
+    poll();
+    const t = setInterval(poll, 4000);
+    return () => clearInterval(t);
+  }, [isEscalated, conversationId, agentClaimed, lastPollTs]);
+
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -195,8 +236,21 @@ export default function ChatInterface() {
 
     setMessages(prev => [...prev, userMessage]);
     setInput("");
-    setIsTyping(true);
     setSuggestions([]);
+
+    // When escalated, route to human agent endpoint instead of AI
+    if (isEscalated && conversationId) {
+      try {
+        await fetch(`/api/backend/v1/chat/customer-message/${conversationId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: text }),
+        });
+      } catch { /* ignore */ }
+      return;
+    }
+
+    setIsTyping(true);
 
     try {
       const response = await fetch("/api/chat", {
@@ -213,17 +267,29 @@ export default function ChatInterface() {
       const data = await response.json();
       if (data.conversation_id) setConversationId(data.conversation_id);
 
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: data.response || "I apologize, I could not process your request. Please try again.",
-          timestamp: new Date(),
-        },
-      ]);
-
-      if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3));
+      if (data.escalated && !isEscalated) {
+        setIsEscalated(true);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: data.response || "I've transferred your request to a human agent who will assist you shortly.",
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: data.response || "I apologize, I could not process your request. Please try again.",
+            timestamp: new Date(),
+          },
+        ]);
+        if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3));
+      }
     } catch {
       setMessages(prev => [
         ...prev,
@@ -247,12 +313,30 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex-1 flex flex-col max-h-[calc(100vh-72px)]">
+    <div className={className ?? "flex-1 flex flex-col max-h-[calc(100vh-72px)]"}>
       {/* Language bar */}
-      <div className="border-b border-gray-200 bg-white px-4 py-2 flex items-center gap-3">
-        <span className="text-xs text-gray-500">Language:</span>
-        <LanguageSelector value={language} onChange={setLanguage} />
-      </div>
+      {!isEscalated && (
+        <div className="border-b border-gray-200 bg-white px-4 py-2 flex items-center gap-3">
+          <span className="text-xs text-gray-500">Language:</span>
+          <LanguageSelector value={language} onChange={setLanguage} />
+        </div>
+      )}
+
+      {/* Escalation banner */}
+      {isEscalated && (
+        <div className={clsx(
+          "border-b px-4 py-2.5 flex items-center gap-2.5 text-sm",
+          agentClaimed
+            ? "bg-green-50 border-green-200 text-green-800"
+            : "bg-amber-50 border-amber-200 text-amber-800"
+        )}>
+          {agentClaimed ? (
+            <><User className="w-4 h-4 flex-shrink-0" /> A human agent has joined — you can chat directly with them.</>
+          ) : (
+            <><Clock className="w-4 h-4 flex-shrink-0 animate-pulse" /> Your request has been transferred to a human agent. Please wait…</>
+          )}
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -260,7 +344,7 @@ export default function ChatInterface() {
           <MessageBubble key={msg.id} message={msg} />
         ))}
 
-        {isTyping && (
+        {isTyping && !isEscalated && (
           <div className="flex gap-2 items-end">
             <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               AI
@@ -290,7 +374,7 @@ export default function ChatInterface() {
       )}
 
       {/* Suggestions */}
-      {suggestions.length > 0 && userMessageCount < 2 && (
+      {suggestions.length > 0 && userMessageCount < 2 && !isEscalated && (
         <div className="px-4 pb-2 flex gap-2 flex-wrap">
           {suggestions.map(s => (
             <button
@@ -311,7 +395,7 @@ export default function ChatInterface() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your question… (Enter to send)"
+            placeholder={isEscalated ? "Message the human agent… (Enter to send)" : "Type your question… (Enter to send)"}
             rows={1}
             className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 max-h-32"
             style={{ lineHeight: "1.5" }}

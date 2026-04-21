@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3, Phone, Settings, Home, Plane,
-  ShieldCheck, Bot, Languages, Wrench, ChevronDown, ChevronRight,
+  ShieldCheck, Bot, Languages, Wrench, ChevronDown, ChevronRight, LogOut,
+  AlertTriangle,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const mainNav = [
   { href: "/dashboard", label: "Overview", icon: BarChart3 },
   { href: "/calls", label: "Call Logs", icon: Phone },
+  { href: "/escalations", label: "Escalations", icon: AlertTriangle },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -24,8 +26,26 @@ const adminNav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isInAdmin = pathname.startsWith("/admin");
   const [adminOpen, setAdminOpen] = useState(isInAdmin);
+  const [waitingEscalations, setWaitingEscalations] = useState(0);
+
+  useEffect(() => {
+    const fetch_ = () =>
+      fetch("/api/backend/v1/admin/escalations?status=waiting")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => d && setWaitingEscalations(d.total ?? 0))
+        .catch(() => {});
+    fetch_();
+    const t = setInterval(fetch_, 10000);
+    return () => clearInterval(t);
+  }, []);
+
+  const logout = async () => {
+    await fetch("/api/auth", { method: "DELETE" });
+    router.push("/login");
+  };
 
   return (
     <div className="min-h-screen flex bg-gray-50">
@@ -54,7 +74,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
             >
               <Icon className="w-4 h-4" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {href === "/escalations" && waitingEscalations > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {waitingEscalations}
+                </span>
+              )}
             </Link>
           ))}
 
@@ -99,14 +124,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </nav>
 
-        <div className="p-4 border-t border-brand-700">
+        <div className="p-4 border-t border-brand-700 space-y-1">
           <Link
             href="/"
-            className="flex items-center gap-2 text-brand-300 hover:text-white text-sm transition-colors"
+            className="flex items-center gap-2 text-brand-300 hover:text-white text-sm transition-colors px-1 py-1"
           >
             <Home className="w-4 h-4" />
             Back to Home
           </Link>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 text-brand-300 hover:text-red-300 text-sm transition-colors w-full px-1 py-1"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
         </div>
       </aside>
 

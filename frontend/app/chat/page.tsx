@@ -1,21 +1,38 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import ChatInterface from "@/components/chat/ChatInterface";
 
 export default function ChatPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-brand-800 text-white px-6 py-4 flex items-center gap-3 shadow-md">
-        <img src="/logo.png" alt="Air Mauritius" className="h-8 w-8 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        <div>
-          <h1 className="font-semibold text-sm">SSR Airport AI Assistant</h1>
-          <p className="text-brand-100 text-xs">Air Mauritius — Available 24/7</p>
+      <header className="bg-gradient-to-r from-brand-800 to-brand-700 text-white px-4 py-3 flex items-center gap-3 shadow-md">
+        <Link href="/" className="p-1.5 rounded-lg hover:bg-brand-700 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+
+        {/* Aida avatar */}
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-2 border-white/30 flex items-center justify-center font-bold text-sm shrink-0">
+          A
         </div>
-        <div className="ml-auto flex items-center gap-2">
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="font-bold text-sm">Aida</h1>
+            <span className="text-xs bg-white/10 border border-white/20 rounded-full px-2 py-0.5 text-brand-100">
+              AI Assistant
+            </span>
+          </div>
+          <p className="text-brand-200 text-xs">SSR Airport · Air Mauritius</p>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-brand-100">Online</span>
+          <span className="text-xs text-green-300 font-medium">Online</span>
         </div>
       </header>
+
       <ChatInterface />
     </div>
   );

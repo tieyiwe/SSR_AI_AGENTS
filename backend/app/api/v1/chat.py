@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from app.models.conversation import (
     ChatRequest, ChatResponse, ConversationDetail, Language, Message, MessageRole,
@@ -15,9 +16,17 @@ from app.utils.escalation import should_escalate, get_priority
 router = APIRouter()
 ai_service = SSRAIService()
 
-# ── In-memory fallback store (used when DATABASE_URL is not set) ─────────────
+# ── In-memory fallback stores ─────────────────────────────────────────────────
 
 _mem_conversations: dict = {}   # conv_id -> {meta, messages[]}
+
+# Escalation store shared with admin.py
+# conv_id -> {id, status, claimed_by, reason, priority, created_at, claimed_at, agent_messages[]}
+_mem_escalations: dict = {}
+
+
+class CustomerMessageRequest(BaseModel):
+    content: str
 
 
 def _is_db_available() -> bool:
@@ -60,9 +69,23 @@ def _mem_add_messages(conv_id: str, user_text: str, assistant_text: str,
                               "created_at": ts, "tokens_used": tokens})
 
 
-def _mem_escalate(conv_id: str):
+def _mem_escalate(conv_id: str, reason: str = "", priority: str = "normal"):
     if conv_id in _mem_conversations:
         _mem_conversations[conv_id]["status"] = "escalated"
+    if conv_id not in _mem_escalations:
+        _mem_escalations[conv_id] = {
+            "id": conv_id,
+            "status": "waiting",
+            "claimed_by": None,
+            "reason": reason,
+            "priority": priority,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "claimed_at": None,
+            "resolved_at": None,
+            "agent_messages": [],
+            "language": _mem_conversations.get(conv_id, {}).get("language", "en"),
+            "channel": _mem_conversations.get(conv_id, {}).get("channel", "web"),
+        }
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -143,7 +166,7 @@ async def send_message(request: ChatRequest):
         _mem_add_messages(conv_id, request.message, ai_result["response"],
                           language, ai_result["tokens_used"])
         if escalated:
-            _mem_escalate(conv_id)
+            _mem_escalate(conv_id, esc_reason or "", get_priority(esc_reason or ""))
 
     return ChatResponse(
         conversation_id=conv_id,
@@ -238,4 +261,47 @@ async def get_history(
              "status": c["status"], "channel": c["channel"]}
             for c in convs
         ]
+    }
+
+
+# ── Escalation customer endpoints ─────────────────────────────────────────────
+
+@router.post("/customer-message/{conv_id}")
+async def customer_escalation_message(conv_id: str, body: CustomerMessageRequest):
+    """Customer sends a message to the human agent after escalation."""
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        raise HTTPException(status_code=404, detail="Escalation not found")
+    if esc["status"] == "resolved":
+        raise HTTPException(status_code=409, detail="Escalation already resolved")
+
+    msg = {
+        "id": str(uuid.uuid4()),
+        "from": "customer",
+        "content": body.content,
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    _mem_escalations[conv_id]["agent_messages"].append(msg)
+    return {"ok": True, "message_id": msg["id"]}
+
+
+@router.get("/poll/{conv_id}")
+async def poll_escalation(conv_id: str, since: Optional[str] = Query(None)):
+    """Customer polls for new messages from the human agent."""
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        return {"escalated": False, "messages": [], "status": "active", "claimed": False}
+
+    agent_msgs = [
+        m for m in esc["agent_messages"]
+        if m["from"] == "agent" and (not since or m["ts"] > since)
+    ]
+    return {
+        "escalated": True,
+        "status": esc["status"],
+        "claimed": esc["claimed_by"] is not None,
+        "claimed_by": esc["claimed_by"],
+        "messages": agent_msgs,
+        "resolved": esc["status"] == "resolved",
     }

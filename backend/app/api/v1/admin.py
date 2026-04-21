@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from app.core.admin_config import get_config, update_config
 from app.core.config import settings
@@ -424,6 +425,140 @@ async def list_conversations(
             for c in page
         ],
     }
+
+
+# ── Escalation management ─────────────────────────────────────────────────────
+
+class AgentReplyRequest(BaseModel):
+    content: str
+    agent_name: str = "Agent"
+
+
+class ClaimRequest(BaseModel):
+    agent_name: str = "Agent"
+
+
+@router.get("/escalations")
+async def list_escalations(status: Optional[str] = Query(None)):
+    """List all escalated conversations. Optionally filter by status (waiting/claimed/resolved)."""
+    from app.api.v1.chat import _mem_escalations, _mem_conversations
+    items = list(_mem_escalations.values())
+    if status:
+        items = [e for e in items if e["status"] == status]
+
+    result = []
+    for e in sorted(items, key=lambda x: x["created_at"], reverse=True):
+        conv = _mem_conversations.get(e["id"], {})
+        unread = sum(1 for m in e["agent_messages"] if m["from"] == "customer" and not m.get("read"))
+        result.append({
+            "id": e["id"],
+            "status": e["status"],
+            "claimed_by": e["claimed_by"],
+            "reason": e["reason"],
+            "priority": e["priority"],
+            "created_at": e["created_at"],
+            "claimed_at": e["claimed_at"],
+            "resolved_at": e.get("resolved_at"),
+            "language": e.get("language", "en"),
+            "channel": e.get("channel", "web"),
+            "message_count": len(conv.get("messages", [])),
+            "unread_from_customer": unread,
+        })
+    return {"total": len(result), "escalations": result}
+
+
+@router.get("/escalations/{conv_id}")
+async def get_escalation(conv_id: str):
+    """Get full escalation detail including all messages."""
+    from app.api.v1.chat import _mem_escalations, _mem_conversations
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        raise HTTPException(status_code=404, detail="Escalation not found")
+
+    conv = _mem_conversations.get(conv_id, {})
+    ai_messages = conv.get("messages", [])
+
+    # Mark customer messages as read
+    for m in esc["agent_messages"]:
+        if m["from"] == "customer":
+            m["read"] = True
+
+    return {
+        **esc,
+        "ai_messages": ai_messages,
+    }
+
+
+@router.post("/escalations/{conv_id}/claim")
+async def claim_escalation(conv_id: str, body: ClaimRequest):
+    """Human agent claims an escalated conversation."""
+    from app.api.v1.chat import _mem_escalations
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        raise HTTPException(status_code=404, detail="Escalation not found")
+    if esc["status"] == "resolved":
+        raise HTTPException(status_code=409, detail="Escalation already resolved")
+
+    esc["status"] = "claimed"
+    esc["claimed_by"] = body.agent_name
+    esc["claimed_at"] = datetime.now(timezone.utc).isoformat()
+
+    greeting = {
+        "id": str(time.time()),
+        "from": "agent",
+        "content": f"Hi! I'm {body.agent_name}, a human agent. I've taken over from Aida and I'll help you personally. How can I assist you?",
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    esc["agent_messages"].append(greeting)
+    return {"ok": True, "conversation_id": conv_id, "claimed_by": body.agent_name}
+
+
+@router.post("/escalations/{conv_id}/reply")
+async def agent_reply(conv_id: str, body: AgentReplyRequest):
+    """Human agent sends a message to the customer."""
+    from app.api.v1.chat import _mem_escalations
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        raise HTTPException(status_code=404, detail="Escalation not found")
+    if esc["status"] == "resolved":
+        raise HTTPException(status_code=409, detail="Escalation resolved")
+
+    msg = {
+        "id": str(time.time()),
+        "from": "agent",
+        "content": body.content,
+        "agent_name": body.agent_name,
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    esc["agent_messages"].append(msg)
+    return {"ok": True, "message_id": msg["id"]}
+
+
+@router.post("/escalations/{conv_id}/close")
+async def close_escalation(conv_id: str):
+    """Resolve an escalated conversation."""
+    from app.api.v1.chat import _mem_escalations, _mem_conversations
+    esc = _mem_escalations.get(conv_id)
+    if not esc:
+        raise HTTPException(status_code=404, detail="Escalation not found")
+
+    esc["status"] = "resolved"
+    esc["resolved_at"] = datetime.now(timezone.utc).isoformat()
+
+    if conv_id in _mem_conversations:
+        _mem_conversations[conv_id]["status"] = "resolved"
+
+    close_msg = {
+        "id": str(time.time()),
+        "from": "agent",
+        "content": "This conversation has been resolved. Thank you for contacting SSR Airport. Have a pleasant journey!",
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "read": False,
+    }
+    esc["agent_messages"].append(close_msg)
+    return {"ok": True, "conversation_id": conv_id, "status": "resolved"}
 
 
 @router.post("/conversations/{conv_id}/close")
