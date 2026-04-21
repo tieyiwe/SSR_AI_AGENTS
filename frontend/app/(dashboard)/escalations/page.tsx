@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  AlertTriangle, CheckCircle, Clock, User, Send, RefreshCw,
-  MessageSquare, ArrowRight, Wifi, WifiOff, Zap,
+  AlertTriangle, CheckCircle, Clock, User, Send,
+  MessageSquare, ArrowRight, Wifi, Zap, Phone, X, Bell,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -13,6 +13,64 @@ type CannedResponse = {
   content: string;
   category: string;
 };
+
+// ── Smooth 3-note chime via Web Audio API ────────────────────────────────────
+function playChime() {
+  try {
+    const Ctx = window.AudioContext ?? (window as never as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    [
+      { freq: 523.25, t: 0.00, vol: 0.22 },   // C5
+      { freq: 659.25, t: 0.20, vol: 0.25 },   // E5
+      { freq: 783.99, t: 0.40, vol: 0.28 },   // G5
+    ].forEach(({ freq, t: start, vol }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const now = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc.start(now);
+      osc.stop(now + 0.95);
+    });
+  } catch { /* audio unavailable */ }
+}
+
+// ── Toast notification ────────────────────────────────────────────────────────
+type Toast = { id: string; reason: string; channel: string; priority: string };
+
+function ToastBanner({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
+  const [exiting, setExiting] = useState(false);
+  const dismiss = () => {
+    setExiting(true);
+    setTimeout(onDismiss, 250);
+  };
+  const isVoice = toast.channel === "phone";
+  return (
+    <div className={clsx(
+      "flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-white text-sm",
+      "bg-gradient-to-r from-red-600 to-red-500 border-red-400",
+      exiting ? "toast-exit" : "toast-enter"
+    )}>
+      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 animate-pulse">
+        {isVoice ? <Phone className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-xs uppercase tracking-wide opacity-80">
+          New {isVoice ? "Voice" : "Chat"} Escalation
+        </p>
+        <p className="font-semibold truncate">{toast.reason || "Customer needs assistance"}</p>
+      </div>
+      <button onClick={dismiss} className="p-1 rounded-lg hover:bg-white/20 transition-colors flex-shrink-0">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 function SLATimer({ createdAt, status }: { createdAt: string; status: string }) {
   const [mins, setMins] = useState(() =>
@@ -102,6 +160,8 @@ function StatusBadge({ status }: { status: EscalationStatus }) {
 
 export default function EscalationsPage() {
   const [escalations, setEscalations] = useState<EscalationSummary[]>([]);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const [selected, setSelected] = useState<EscalationDetail | null>(null);
   const [reply, setReply] = useState("");
   const [agentName, setAgentName] = useState("Agent");
@@ -112,7 +172,16 @@ export default function EscalationsPage() {
   const [filter, setFilter] = useState<"all" | EscalationStatus>("all");
   const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
   const [showCanned, setShowCanned] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const knownIds = useRef<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Request browser notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     fetch("/api/backend/v1/admin/canned-responses")
@@ -121,20 +190,71 @@ export default function EscalationsPage() {
       .catch(() => {});
   }, []);
 
+  const dismissToast = (id: string) =>
+    setToasts(prev => prev.filter(t => t.id !== id));
+
   const fetchList = useCallback(async () => {
     try {
-      const url = filter === "all"
-        ? "/api/backend/v1/admin/escalations"
-        : `/api/backend/v1/admin/escalations?status=${filter}`;
-      const r = await fetch(url);
+      // Always fetch all so we can detect new arrivals regardless of active filter
+      const r = await fetch("/api/backend/v1/admin/escalations");
       if (r.ok) {
         const data = await r.json();
-        setEscalations(data.escalations ?? []);
+        const all: EscalationSummary[] = data.escalations ?? [];
+
+        // Detect brand-new waiting escalations
+        const incoming = all.filter(
+          e => e.status === "waiting" && !knownIds.current.has(e.id)
+        );
+        if (incoming.length > 0) {
+          if (soundEnabled) playChime();
+
+          // Flash animation on cards
+          setNewIds(prev => {
+            const next = new Set(prev);
+            incoming.forEach(e => next.add(e.id));
+            return next;
+          });
+          // Remove flash after animation (3 × 0.9s)
+          setTimeout(() => {
+            setNewIds(prev => {
+              const next = new Set(prev);
+              incoming.forEach(e => next.delete(e.id));
+              return next;
+            });
+          }, 2800);
+
+          // Toast per new escalation
+          incoming.forEach(e => {
+            const toast: Toast = { id: e.id, reason: e.reason, channel: e.channel, priority: e.priority };
+            setToasts(prev => [...prev.slice(-2), toast]); // max 3 toasts
+            setTimeout(() => dismissToast(e.id), 9000);
+
+            // Browser notification when tab is in background
+            if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+              new Notification(
+                `New ${e.channel === "phone" ? "Voice" : "Chat"} Escalation`,
+                {
+                  body: e.reason || "A customer needs assistance",
+                  icon: "/favicon.ico",
+                  tag: e.id,
+                }
+              );
+            }
+          });
+        }
+
+        // Update known-IDs set
+        all.forEach(e => knownIds.current.add(e.id));
+
+        // Apply filter for display
+        const displayed = filter === "all" ? all : all.filter(e => e.status === filter);
+        setEscalations(displayed);
       }
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, soundEnabled]);
 
   const fetchSelected = useCallback(async (id: string) => {
     const r = await fetch(`/api/backend/v1/admin/escalations/${id}`);
@@ -213,6 +333,17 @@ export default function EscalationsPage() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* Toast notifications — float above everything */}
+      {toasts.length > 0 && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+          {toasts.map(t => (
+            <div key={t.id} className="pointer-events-auto">
+              <ToastBanner toast={t} onDismiss={() => dismissToast(t.id)} />
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Header */}
       <div className="border-b border-gray-200 bg-white px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div>
@@ -220,7 +351,7 @@ export default function EscalationsPage() {
             <AlertTriangle className="w-5 h-5 text-amber-500" />
             Escalation Queue
             {waitingCount > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="ml-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                 {waitingCount}
               </span>
             )}
@@ -230,14 +361,27 @@ export default function EscalationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSoundEnabled(s => !s)}
+            title={soundEnabled ? "Mute notifications" : "Unmute notifications"}
+            className={clsx(
+              "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors",
+              soundEnabled
+                ? "bg-brand-50 text-brand-600 border-brand-200 hover:bg-brand-100"
+                : "bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100"
+            )}
+          >
+            <Bell className={clsx("w-3.5 h-3.5", soundEnabled && "animate-pulse")} />
+            {soundEnabled ? "Sound on" : "Sound off"}
+          </button>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Wifi className="w-3.5 h-3.5 text-green-500" />
-            Refreshing every 5s
+            Live
           </div>
           <input
             value={agentName}
             onChange={e => setAgentName(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 w-40 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 w-36 focus:outline-none focus:ring-2 focus:ring-brand-500"
             placeholder="Your name"
           />
         </div>
@@ -288,7 +432,8 @@ export default function EscalationsPage() {
                     onClick={() => handleSelect(esc)}
                     className={clsx(
                       "w-full text-left px-4 py-3 border-b border-gray-100 transition-colors",
-                      isActive ? "bg-brand-50 border-l-2 border-l-brand-500" : "hover:bg-white"
+                      isActive ? "bg-brand-50 border-l-2 border-l-brand-500" : "hover:bg-white",
+                      newIds.has(esc.id) && "escalation-new"
                     )}
                   >
                     <div className="flex items-start justify-between mb-1">
