@@ -158,7 +158,7 @@ export default function HomePage() {
                   <Phone className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold text-sm">Call Us</p>
+                  <p className="font-semibold text-sm">Instant Call</p>
                   <p className="text-brand-200 text-xs">
                     <span className="sm:hidden">Tap to call now</span>
                     <span className="hidden sm:inline">{PHONE_NUMBER}</span>
