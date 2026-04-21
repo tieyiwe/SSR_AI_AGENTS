@@ -1,10 +1,50 @@
 import Link from "next/link";
-import { Plane, MessageCircle, Phone, Globe } from "lucide-react";
+import { Plane, MessageCircle, Phone, Globe, CheckCircle } from "lucide-react";
 
 const PHONE_NUMBER = "+230 603 8000";
 const PHONE_TEL    = "tel:+2306038000";
 const WA_NUMBER    = "14155238886";
 const WA_MSG       = encodeURIComponent("Hello Priya, I need assistance at SSR Airport.");
+
+// What Priya can help with — grouped by category
+const CAPABILITIES = [
+  {
+    category: "✈️ Flights",
+    items: [
+      "Real-time flight status & gate updates",
+      "Departure & arrival times",
+      "Flight delay or cancellation info",
+      "Connecting flight guidance",
+    ],
+  },
+  {
+    category: "🎫 Bookings",
+    items: [
+      "PNR / booking lookup",
+      "Ticket change requests",
+      "Seat selection assistance",
+      "Upgrade eligibility check",
+    ],
+  },
+  {
+    category: "🍽️ Special Services",
+    items: [
+      "Special meal requests (VGML, KSML, etc.)",
+      "Wheelchair & mobility assistance",
+      "Unaccompanied minor arrangements",
+      "Medical equipment on board",
+    ],
+  },
+  {
+    category: "🏢 Airport Info",
+    items: [
+      "Check-in desk locations & hours",
+      "Lounge access & eligibility",
+      "Baggage allowance & rules",
+      "Duty-free, shops & facilities",
+    ],
+  },
+];
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -17,8 +57,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 flex flex-col safe-top">
-      {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 text-white text-center">
+      <div className="flex-1 flex flex-col items-center px-5 py-10 text-white text-center">
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-6">
@@ -29,8 +68,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Priya introduction */}
-        <div className="mb-8 flex flex-col items-center gap-3">
+        {/* Priya intro */}
+        <div className="mb-6 flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-4 border-white/20 flex items-center justify-center shadow-xl text-2xl font-bold">
             P
           </div>
@@ -45,14 +84,40 @@ export default function HomePage() {
         </div>
 
         <p className="text-brand-100 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
-          Priya helps you with flight status, bookings, special requests, and airport information
-          — instantly, in your language.
+          Priya handles your airport and travel needs instantly — in your language, around the clock.
         </p>
 
-        {/* Contact channels — single column on mobile, 3 cols on desktop */}
+        {/* ── What Priya can do ─────────────────────────────────── */}
+        <div className="w-full max-w-3xl mb-10 text-left">
+          <h3 className="text-center text-sm font-semibold text-brand-200 uppercase tracking-widest mb-5">
+            What Priya can do for you
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {CAPABILITIES.map(({ category, items }) => (
+              <div
+                key={category}
+                className="bg-white/8 backdrop-blur border border-white/15 rounded-2xl p-4"
+              >
+                <p className="text-sm font-semibold text-white mb-3">{category}</p>
+                <ul className="space-y-1.5">
+                  {items.map(item => (
+                    <li key={item} className="flex items-start gap-2 text-xs text-brand-100 leading-relaxed">
+                      <CheckCircle className="w-3.5 h-3.5 text-gold-400 shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-brand-300 mt-4">
+            Can&apos;t resolve something? Priya escalates to a human agent immediately.
+          </p>
+        </div>
+
+        {/* ── Contact channels ──────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-3xl mb-8">
 
-          {/* Web Chat */}
           <Link
             href="/chat"
             className="bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur rounded-2xl p-5 transition-all border border-white/20 text-left group hover:scale-105 active:scale-100"
@@ -69,7 +134,6 @@ export default function HomePage() {
             </span>
           </Link>
 
-          {/* WhatsApp */}
           <a
             href={`https://wa.me/${WA_NUMBER}?text=${WA_MSG}`}
             target="_blank"
@@ -85,13 +149,10 @@ export default function HomePage() {
             </p>
             <div className="mt-3 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-xs font-semibold text-green-300 group-hover:underline">
-                Open WhatsApp →
-              </span>
+              <span className="text-xs font-semibold text-green-300 group-hover:underline">Open WhatsApp →</span>
             </div>
           </a>
 
-          {/* Phone — tel: link triggers native dialer on mobile */}
           <a
             href={PHONE_TEL}
             className="bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur rounded-2xl p-5 transition-all border border-white/20 text-left group hover:scale-105 active:scale-100"
@@ -103,7 +164,6 @@ export default function HomePage() {
             <p className="text-brand-200 text-xs leading-relaxed">
               Tap to call — Priya will assist you over the phone, 24 hours a day.
             </p>
-            {/* Mobile: shows "Tap to call", desktop: shows the number */}
             <p className="mt-3 text-xs font-bold text-gold-400 group-hover:underline">
               <span className="sm:hidden">Tap to call →</span>
               <span className="hidden sm:inline">{PHONE_NUMBER} →</span>
@@ -111,7 +171,7 @@ export default function HomePage() {
           </a>
         </div>
 
-        {/* Language badges */}
+        {/* ── Language badges ───────────────────────────────────── */}
         <div className="flex items-center gap-2 flex-wrap justify-center mb-8">
           <Globe className="w-4 h-4 text-brand-300" />
           <span className="text-brand-300 text-xs">Available in:</span>
@@ -122,13 +182,13 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Stats — 2 cols on mobile, 4 on desktop */}
+        {/* ── Stats ─────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
           {[
-            { value: "70%", label: "Automation Rate" },
-            { value: "<5s", label: "Response Time" },
-            { value: "4",   label: "Languages" },
-            { value: "24/7",label: "Availability" },
+            { value: "70%",  label: "Automation Rate" },
+            { value: "<5s",  label: "Response Time" },
+            { value: "4",    label: "Languages" },
+            { value: "24/7", label: "Availability" },
           ].map(({ value, label }) => (
             <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
               <div className="text-xl font-bold text-gold-400">{value}</div>
