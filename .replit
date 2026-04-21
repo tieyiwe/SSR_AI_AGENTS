@@ -1,0 +1,33 @@
+run = "bash start.sh"
+entrypoint = "start.sh"
+
+[nix]
+channel = "stable-23_11"
+
+[env]
+PYTHONPATH = "${REPL_HOME}/backend"
+BACKEND_PORT = "8000"
+
+# Expose frontend (main webview) on 3000 and API on 8000
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[languages]
+[languages.python]
+pattern = "**/*.py"
+[languages.python.languageServer]
+start = "pylsp"
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+[languages.javascript.languageServer]
+start = "typescript-language-server --stdio"
+
+[deployment]
+run = ["sh", "-c", "bash start.sh"]
+deploymentTarget = "cloudrun"

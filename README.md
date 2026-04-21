@@ -52,14 +52,37 @@ ssr-airport-ai/
 
 ## Quick Start
 
-### Prerequisites
+### Replit (Recommended)
+
+1. **Fork or import** this repo into Replit
+2. **Add Secrets** (Replit sidebar → Tools → Secrets):
+
+   | Secret | Description |
+   |--------|-------------|
+   | `ANTHROPIC_API_KEY` | Claude AI — required for chat |
+   | `DATABASE_URL` | Supabase PostgreSQL URI |
+   | `BLAND_AI_API_KEY` | Voice AI (optional) |
+   | `TWILIO_ACCOUNT_SID` | Phone/WhatsApp (optional) |
+   | `TWILIO_AUTH_TOKEN` | Phone/WhatsApp (optional) |
+
+3. **Click Run** — `start.sh` installs all deps and launches both services
+4. Open the **Webview** (port 3000) for the frontend, port 8000 for the API
+
+> **Database:** Get a free PostgreSQL connection string from [supabase.com](https://supabase.com).
+> Apply the schema once: paste `database/schema.sql` into the Supabase SQL editor.
+
+---
+
+### Local Development
+
+#### Prerequisites
 
 - Node.js 18+
 - Python 3.11+
 - Docker & Docker Compose
 - PostgreSQL 15+ or Supabase account
 
-### 1. Clone & Configure
+#### 1. Clone & Configure
 
 ```bash
 git clone https://github.com/tieyiwe/ssr_ai_agents.git
@@ -68,13 +91,13 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-### 2. Start with Docker
+#### 2. Start with Docker
 
 ```bash
 docker-compose up --build
 ```
 
-### 3. Manual Setup
+#### 3. Manual Setup
 
 **Backend:**
 ```bash

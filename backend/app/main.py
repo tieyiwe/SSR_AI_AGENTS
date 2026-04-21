@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 import sentry_sdk
-import os
 
 from app.core.config import settings
 from app.core.database import init_db, close_db
@@ -33,10 +31,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS — allow all origins in development (covers Replit workspace URLs),
+# restrict to explicit list in production.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"] if settings.allow_all_origins else settings.CORS_ORIGINS,
+    allow_credentials=not settings.allow_all_origins,  # credentials require explicit origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -51,7 +51,12 @@ app.include_router(whatsapp.router, prefix="/api/v1/whatsapp", tags=["WhatsApp"]
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "service": "SSR Airport AI", "version": "1.0.0"}
+    return {
+        "status": "ok",
+        "service": "SSR Airport AI",
+        "version": "1.0.0",
+        "env": settings.APP_ENV,
+    }
 
 
 @app.get("/")
