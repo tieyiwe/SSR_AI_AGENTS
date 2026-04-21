@@ -59,18 +59,6 @@ export default function SettingsPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Claude Model
-          </label>
-          <input
-            type="text"
-            defaultValue="claude-sonnet-4-20250514"
-            readOnly
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
             Max Tokens per Response
           </label>
           <input

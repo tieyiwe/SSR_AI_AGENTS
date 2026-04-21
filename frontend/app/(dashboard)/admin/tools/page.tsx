@@ -67,7 +67,8 @@ export default function ToolsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params),
       });
-      setTestResults(prev => ({ ...prev, [toolName]: await r.json() }));
+      const result = await r.json();
+      setTestResults(prev => ({ ...prev, [toolName]: result }));
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : "Unknown error";
       setTestResults(prev => ({ ...prev, [toolName]: { ok: false, error: err } }));
