@@ -132,6 +132,23 @@ async def test_all_languages(body: dict):
     return {"message": message, "results": results}
 
 
+# ── Voice persona catalogue ───────────────────────────────────────────────────
+
+@router.get("/voice-personas")
+async def list_voice_personas():
+    """Return the full persona database used for random voice agent selection."""
+    from app.core.admin_config import list_personas
+    personas = list_personas()
+    female = [p for p in personas if p["gender"] == "female"]
+    male   = [p for p in personas if p["gender"] == "male"]
+    return {
+        "total": len(personas),
+        "female_count": len(female),
+        "male_count": len(male),
+        "personas": personas,
+    }
+
+
 # ── Tool registry ─────────────────────────────────────────────────────────────
 
 @router.get("/tools")

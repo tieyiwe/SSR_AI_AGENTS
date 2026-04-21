@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bot, Mic, Save, Play, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Bot, Mic, Save, Play, RotateCcw, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { clsx } from "clsx";
 
 const BASE = "/api/backend";
@@ -32,8 +32,16 @@ type Config = {
 
 type TestResult = { response: string; suggestions: string[]; intent: string; escalation_needed: boolean } | null;
 
+type Persona = { name: string; voice: string; gender: "male" | "female" };
+
+const VOICE_LABEL: Record<string, string> = {
+  luna: "Luna", lily: "Lily", maya: "Maya", sophie: "Sophie",
+  nat: "Nat", ryan: "Ryan", derek: "Derek", luke: "Luke",
+};
+
 export default function AgentsPage() {
   const [config, setConfig] = useState<Config | null>(null);
+  const [personas, setPersonas] = useState<Persona[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [activeLang, setActiveLang] = useState("en");
@@ -46,6 +54,10 @@ export default function AgentsPage() {
     fetch(`${BASE}/v1/admin/config`)
       .then(r => r.json())
       .then(setConfig)
+      .catch(() => {});
+    fetch(`${BASE}/v1/admin/voice-personas`)
+      .then(r => r.json())
+      .then(d => setPersonas(d.personas ?? []))
       .catch(() => {});
   }, []);
 
@@ -195,6 +207,41 @@ export default function AgentsPage() {
           ))}
         </div>
       </div>
+
+      {/* Voice persona database */}
+      {personas.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-1">
+            <Users className="w-4 h-4 text-brand-600" /> Voice Agent Persona Database
+          </h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Each phone call randomly selects one of these personas — a unique name + matching voice.
+            Passengers always hear a different agent, keeping every experience fresh.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(["female", "male"] as const).map(gender => (
+              <div key={gender}>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  {gender === "female" ? "♀ Female personas" : "♂ Male personas"}
+                </p>
+                <div className="space-y-1.5">
+                  {personas.filter(p => p.gender === gender).map(p => (
+                    <div key={p.name} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                      <span className="font-medium text-sm text-gray-800 w-20">{p.name}</span>
+                      <span className="text-xs bg-white border border-gray-200 rounded-full px-2 py-0.5 text-gray-500">
+                        Voice: {VOICE_LABEL[p.voice] ?? p.voice}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-4">
+            {personas.length} personas total · Edit <code className="bg-gray-100 px-1 rounded">backend/app/core/admin_config.py</code> to add more names or voices.
+          </p>
+        </div>
+      )}
 
       {/* Language-specific instructions */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">

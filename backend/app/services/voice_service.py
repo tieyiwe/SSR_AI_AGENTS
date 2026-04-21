@@ -15,13 +15,17 @@ class BlandVoiceService:
         language: str = "en",
         context: Optional[Dict] = None,
         voice_id: Optional[str] = None,
+        agent_name: Optional[str] = None,
     ) -> Dict:
-        from app.core.admin_config import get_voice_id
-        voice = voice_id or get_voice_id()
+        from app.core.admin_config import get_voice_persona
+        # Pick a fresh random persona for every call unless caller supplied overrides
+        persona = get_voice_persona()
+        voice = voice_id or persona["voice"]
+        name  = agent_name or persona["name"]
 
         payload = {
             "phone_number": phone_number,
-            "task": self._build_task_prompt(language, context),
+            "task": self._build_task_prompt(language, context, agent_name=name),
             "voice": voice,
             "language": self._map_language(language),
             "model": "enhanced",
@@ -55,16 +59,34 @@ class BlandVoiceService:
             response.raise_for_status()
             return response.json()
 
-    def _build_task_prompt(self, language: str, context: Optional[Dict]) -> str:
+    def _build_task_prompt(
+        self,
+        language: str,
+        context: Optional[Dict],
+        agent_name: str = "Priya",
+    ) -> str:
         from app.core.admin_config import get_config
         cfg = get_config()
-        agent_name = cfg.get("agent_name", "Priya")
         lang_name = self._get_language_name(language)
         lang_extra = cfg.get("language_instructions", {}).get(language, "")
 
-        prompt = f"""You are {agent_name}, the voice AI assistant for SSR International Airport (Air Mauritius), Mauritius.
+        # Build language-specific greeting variants so the intro feels natural
+        greetings = {
+            "en": f"Hello! My name is {agent_name}, and I'm calling from SSR International Airport on behalf of Air Mauritius. How may I assist you today?",
+            "fr": f"Bonjour ! Je m'appelle {agent_name}, et j'appelle de l'Aéroport International SSR pour Air Mauritius. Comment puis-je vous aider aujourd'hui ?",
+            "cr": f"Bonzour ! Mo appel {agent_name}, mo pe apel depi Aeropor Internasional SSR pou Air Mauritius. Ki manier mo kapav ede ou zordi ?",
+            "hi": f"नमस्ते! मेरा नाम {agent_name} है, और मैं Air Mauritius की ओर से SSR अंतर्राष्ट्रीय हवाई अड्डे से बोल रही/रहा हूँ। मैं आपकी किस तरह मदद कर सकता/सकती हूँ?",
+        }
+        greeting_line = greetings.get(language, greetings["en"])
 
-LANGUAGE: Respond in {lang_name}. If the caller uses a different language, match them immediately.
+        prompt = f"""You are {agent_name}, a voice AI assistant for SSR International Airport (Air Mauritius), Mauritius.
+
+MANDATORY FIRST ACTION — SELF-INTRODUCTION:
+When the call connects, IMMEDIATELY say this exact greeting (do NOT skip or modify it):
+"{greeting_line}"
+This introduction must happen before anything else, every single call, no exceptions.
+
+LANGUAGE: Respond in {lang_name}. If the caller uses a different language, switch and match them immediately.
 
 IDENTITY & TONE:
 - Warm, professional, and patient — embody Mauritian hospitality
@@ -98,9 +120,8 @@ ESCALATION — transfer immediately when:
 
 ESCALATION PHRASE: "I completely understand. Let me connect you with our customer service team right away — they have full authority to help you with this. Please hold for just a moment."
 
-GREETING: "Hello, this is {agent_name} from Air Mauritius SSR Airport. How may I assist you today?"
-
-CLOSING: "Thank you for calling SSR International Airport. Have a wonderful journey!"{lang_extra}"""
+CLOSING: "Thank you for calling SSR International Airport. Have a wonderful journey! My name was {agent_name} — don't hesitate to call again."
+"""
 
         if lang_extra:
             prompt += f"\n\nADMIN INSTRUCTIONS: {lang_extra}"
