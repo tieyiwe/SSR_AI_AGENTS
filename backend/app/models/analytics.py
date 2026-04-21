@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, List
-from datetime import date
 
 
 class ChannelMetric(BaseModel):

@@ -1,4 +1,3 @@
-from typing import Optional
 
 
 FRENCH_INDICATORS = ["bonjour", "merci", "vol", "réservation", "billet", "aide", "comment", "pouvez", "voudrais", "heure", "départ", "arrivée"]

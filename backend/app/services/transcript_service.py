@@ -1,9 +1,7 @@
-import json
 import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-import asyncpg
 
 from app.core.database import get_pool
 
@@ -210,7 +208,7 @@ class TranscriptService:
         where = " AND ".join(conditions)
 
         rank_expr = (
-            f"ts_rank(v.transcript_vector, plainto_tsquery('english', $1))"
+            "ts_rank(v.transcript_vector, plainto_tsquery('english', $1))"
             if query
             else "0"
         )

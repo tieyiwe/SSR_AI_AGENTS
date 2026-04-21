@@ -1,8 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
-import uuid
 
 
 class Channel(str, Enum):

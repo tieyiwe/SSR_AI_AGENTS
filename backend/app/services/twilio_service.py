@@ -1,6 +1,6 @@
 from twilio.rest import Client
-from twilio.twiml.voice_response import VoiceResponse, Dial, Say
-from typing import Dict, Optional
+from twilio.twiml.voice_response import VoiceResponse, Dial
+from typing import Optional
 
 from app.core.config import settings
 

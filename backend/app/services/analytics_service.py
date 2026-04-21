@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from typing import Dict, List
 
 from app.core.database import get_pool
