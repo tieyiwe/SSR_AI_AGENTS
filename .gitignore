@@ -57,6 +57,7 @@ node_modules/
 .next/
 out/
 build/
+*.tsbuildinfo
 .DS_Store
 *.pem
 npm-debug.log*
