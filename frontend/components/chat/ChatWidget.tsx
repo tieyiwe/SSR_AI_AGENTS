@@ -65,7 +65,7 @@ export default function ChatWidget() {
             <PriyaAvatar size="md" />
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm leading-tight">Priya</p>
-              <p className="text-brand-100 text-xs">SSR Airport AI Assistant</p>
+              <p className="text-brand-100 text-xs">SSR Airport Assistant</p>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -148,7 +148,7 @@ export default function ChatWidget() {
           <PriyaAvatar size="sm" />
           <div className="text-left">
             <p className="text-xs font-bold leading-tight">Chat with Priya</p>
-            <p className="text-brand-200 text-xs">AI Airport Assistant</p>
+            <p className="text-brand-200 text-xs">Airport Assistant</p>
           </div>
           <MessageCircle className="w-4 h-4 text-brand-200 group-hover:text-white transition-colors" />
         </button>

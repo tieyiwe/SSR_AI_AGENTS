@@ -27,7 +27,7 @@ export default function ChatPage() {
           <div className="flex items-center gap-2">
             <h1 className="font-bold text-sm">Priya</h1>
             <span className="text-xs bg-white/10 border border-white/20 rounded-full px-2 py-0.5 text-brand-100">
-              AI Assistant
+              Airport Assistant
             </span>
           </div>
           <p className="text-brand-200 text-xs">SSR Airport · Air Mauritius</p>
